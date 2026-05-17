@@ -29,36 +29,39 @@ const playStart   = ()=>_play([{freq:392,dur:.12,vol:.55},{freq:523,delay:.13,du
 
 
 // ── TTS — קול עברי אמיתי ────────────────────────────────────────────────────
-const _tts = (text, lang="he") => {
+const _tts = (text, lang="he", onDone=null) => {
   try {
-    if (!window.speechSynthesis) return;
+    if (!window.speechSynthesis) { if(onDone) onDone(); return; }
     window.speechSynthesis.cancel();
     const speak = () => {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = lang === "he" ? "he-IL" : "en-US";
-      u.rate = 0.82;
-      u.pitch = 1.05;
+      u.rate = 0.80;
+      u.pitch = 1.0;
       u.volume = 1;
       const voices = window.speechSynthesis.getVoices();
       const heVoice = voices.find(v => v.lang==="he-IL" || v.lang==="he" || v.lang.startsWith("he"));
       const enVoice = voices.find(v => v.lang==="en-US" || v.lang.startsWith("en"));
       if (lang === "he" && heVoice) u.voice = heVoice;
       else if (lang !== "he" && enVoice) u.voice = enVoice;
-      window.speechSynthesis.speak(u);
+      if (onDone) u.onend = onDone;
+      // המתן קצת לפני הדיבור כדי שלא יחתוך
+      setTimeout(() => window.speechSynthesis.speak(u), 150);
     };
-    // Chrome טוען קולות async
     if (window.speechSynthesis.getVoices().length > 0) {
       speak();
     } else {
-      window.speechSynthesis.onvoiceschanged = () => { speak(); window.speechSynthesis.onvoiceschanged = null; };
-      // fallback אם onvoiceschanged לא מופעל
-      setTimeout(speak, 500);
+      window.speechSynthesis.onvoiceschanged = () => {
+        speak();
+        window.speechSynthesis.onvoiceschanged = null;
+      };
+      setTimeout(speak, 600);
     }
-  } catch(e) {}
+  } catch(e) { if(onDone) onDone(); }
 };
 
 // פידבק קולי מלא
-const speakCorrect  = (lang, name) => {
+const speakCorrect  = (lang) => {
   const msgs = lang==="he"
     ? ["מצוין!", "כל הכבוד!", "נכון מאוד!", "יפה מאוד!", "מעולה!"]
     : ["Correct!", "Well done!", "Excellent!", "Great job!", "Perfect!"];
@@ -67,12 +70,14 @@ const speakCorrect  = (lang, name) => {
 const speakWrong = (lang) => {
   _tts(lang==="he" ? "כמעט! נסה שוב" : "Almost! Try again", lang);
 };
-const speakDailyStart = (lang, name) => {
+const speakDailyStart = (lang, name, gender="m") => {
+  const f = gender==="f";
   const msgs = lang==="he" ? [
     `כל הכבוד${name?" "+name:""}! זה הזמן שלך לזרוח!`,
     `בואו נתחיל${name?" "+name:""}! המוח שלך מוכן!`,
     `היום יהיה נהדר${name?" "+name:""}! בהצלחה!`,
     `קדימה${name?" "+name:""}! 10 דקות לבריאות המוח!`,
+    f ? `את מדהימה${name?" "+name:""}! קדימה לאתגר!` : `אתה מדהים${name?" "+name:""}! קדימה לאתגר!`,
   ] : [
     `Let's go${name?" "+name:""}! Time to shine!`,
     `Ready${name?" "+name:""}? Let's keep that mind sharp!`,
@@ -80,12 +85,14 @@ const speakDailyStart = (lang, name) => {
   ];
   setTimeout(() => _tts(msgs[Math.floor(Math.random()*msgs.length)], lang), 600);
 };
-const speakDailyDone = (lang, name) => {
+const speakDailyDone = (lang, name, gender="m") => {
+  const f = gender==="f";
   const msgs = lang==="he" ? [
     `כל הכבוד${name?" "+name:""}! עשית עבודה מדהימה היום!`,
-    `וואו${name?" "+name:""}! המוח שלך עבד קשה!`,
-    `מדהים${name?" "+name:""}! אני גאה בך!`,
+    f ? `וואו${name?" "+name:""}! את כוכבת!` : `וואו${name?" "+name:""}! אתה כוכב!`,
+    f ? `אני כל כך גאה בך${name?" "+name:""}!` : `אני כל כך גאה בך${name?" "+name:""}!`,
     `${name?name+",":""}היום עשית משהו נפלא לבריאות המוח שלך!`,
+    f ? `מדהימה${name?" "+name:""}! המשיכי כך!` : `מדהים${name?" "+name:""}! המשיכי כך!`,
   ] : [
     `Amazing${name?" "+name:""}! You did a wonderful job today!`,
     `Well done${name?" "+name:""}! Your brain worked hard!`,
@@ -93,8 +100,14 @@ const speakDailyDone = (lang, name) => {
   ];
   setTimeout(() => _tts(msgs[Math.floor(Math.random()*msgs.length)], lang), 400);
 };
-const speakGreeting = (lang, name) => {
-  if (name) _tts(lang==="he" ? `היי ${name}! ברוך הבא!` : `Hey ${name}! Welcome back!`, lang);
+const speakGreeting = (lang, name, gender="m") => {
+  const f = gender==="f";
+  if (name) {
+    const msg = lang==="he"
+      ? (f ? `היי ${name}! ברוכה הבאה!` : `היי ${name}! ברוך הבא!`)
+      : `Hey ${name}! Welcome!`;
+    _tts(msg, lang);
+  }
 };
 
 // ── פידבק ויזואלי — event-based toast ───────────────────────────────────────
@@ -131,9 +144,26 @@ const MSGS = {
   en:{ ok:["Correct! 🎉","Well done! ⭐","Excellent! 🌟","Great job! 💛","Perfect! 🏆"], no:["Almost! 💪","Try again 🔄","Not quite! 😊"] },
 };
 const rnd = a => a[Math.floor(Math.random()*a.length)];
-const sayCorrect    = l => { playCorrect(); showToast(rnd(MSGS[l].ok), "#1DD1A1"); speakCorrect(l); };
-const sayWrong      = l => { playWrong();   showToast(rnd(MSGS[l].no), "#FF6B6B"); speakWrong(l); };
-const sayDone       = l => { playDone(); };
+const sayCorrect = l => {
+  playCorrect();
+  const msgs = l==="he"
+    ? ["מצוין! 🎉","כל הכבוד! ⭐","נכון מאוד! 🌟","יפה מאוד! 💛","מעולה! 🏆"]
+    : ["Correct! 🎉","Well done! ⭐","Excellent! 🌟","Great job! 💛","Perfect! 🏆"];
+  const msg = rnd(msgs);
+  showToast(msg, "#1DD1A1");
+  // הסר אמוג'י לדיבור
+  _tts(msg.replace(/[\u{1F300}-\u{1FFFF}]|[\u{2600}-\u{27FF}]|\uFE0F/gu, "").trim(), l);
+};
+const sayWrong = l => {
+  playWrong();
+  const msgs = l==="he"
+    ? ["כמעט! 💪","נסה שוב 🔄","לא נורא 😊"]
+    : ["Almost! 💪","Try again 🔄","Not quite! 😊"];
+  const msg = rnd(msgs);
+  showToast(msg, "#FF6B6B");
+  _tts(msg.replace(/[\u{1F300}-\u{1FFFF}]|[\u{2600}-\u{27FF}]|\uFE0F/gu, "").trim(), l);
+};
+const sayDone = l => { playDone(); };
 const sayDailyStart = (l, n) => {
   playStart();
   setTimeout(()=>showToast(n?(l==="he"?`בהצלחה ${n}! 🚀`:`Good luck ${n}! 🚀`):(l==="he"?"בהצלחה! 🚀":"Good luck! 🚀"), "#FF9F43"), 850);
@@ -539,6 +569,7 @@ function MenuScreen({ t, lang, streak, name, onSelect }) {
 function NameScreen({ lang, onDone }) {
   const isHe = lang==="he";
   const [name, setName] = useState("");
+  const [gender, setGender] = useState(null); // "m" | "f"
   return (
     <div className="screen" style={{direction:T[lang].dir,display:"flex",flexDirection:"column",justifyContent:"center",minHeight:"100vh"}}>
       <span className="big-e">👋</span>
@@ -551,15 +582,25 @@ function NameScreen({ lang, onDone }) {
       <input
         value={name}
         onChange={e=>setName(e.target.value)}
-        onKeyDown={e=>e.key==="Enter"&&name.trim()&&onDone(name.trim())}
+        onKeyDown={e=>e.key==="Enter"&&name.trim()&&gender&&onDone(name.trim(),gender)}
         placeholder={isHe?"שם פרטי...":"Your name..."}
-        style={{border:"2.5px solid #E8E0D8",borderRadius:16,padding:"18px 20px",fontSize:22,fontFamily:"Nunito,sans-serif",outline:"none",background:"white",textAlign:"center",width:"100%",marginBottom:12,direction:T[lang].dir}}
+        style={{border:"2.5px solid #E8E0D8",borderRadius:16,padding:"18px 20px",fontSize:22,fontFamily:"Nunito,sans-serif",outline:"none",background:"white",textAlign:"center",width:"100%",marginBottom:16,direction:T[lang].dir}}
         autoFocus
       />
-      <button className="btn btn-sun" onClick={()=>{onDone(name.trim());}} >
+      {isHe && (
+        <div style={{display:"flex",gap:12,marginBottom:16}}>
+          <button onClick={()=>setGender("f")} style={{
+            flex:1,padding:"16px",fontSize:20,fontWeight:800,borderRadius:16,cursor:"pointer",fontFamily:"Fredoka,sans-serif",border:`2.5px solid ${gender==="f"?"#FF9F43":"#E8E0D8"}`,background:gender==="f"?"#FFF3E0":"white",color:gender==="f"?"#F08000":"#2D2A26"
+          }}>👩 נקבה</button>
+          <button onClick={()=>setGender("m")} style={{
+            flex:1,padding:"16px",fontSize:20,fontWeight:800,borderRadius:16,cursor:"pointer",fontFamily:"Fredoka,sans-serif",border:`2.5px solid ${gender==="m"?"#54A0FF":"#E8E0D8"}`,background:gender==="m"?"#E3F2FD":"white",color:gender==="m"?"#1464B4":"#2D2A26"
+          }}>👨 זכר</button>
+        </div>
+      )}
+      <button className="btn btn-sun" onClick={()=>{onDone(name.trim(), gender||"m");}} disabled={isHe&&!gender}>
         {isHe?"בואו נתחיל! →":"Let's Go! →"}
       </button>
-      <button className="btn btn-ghost" onClick={()=>onDone("")} style={{fontSize:15}}>
+      <button className="btn btn-ghost" onClick={()=>onDone("", gender||"m")} style={{fontSize:15}}>
         {isHe?"דלג":"Skip"}
       </button>
     </div>
@@ -579,7 +620,7 @@ function buildDailySteps(lang) {
   ];
 }
 
-function DailyChallenge({ t, lang, name, onBack, onComplete }) {
+function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
   const isHe = lang==="he";
   const isRtl = T[lang].dir==="rtl";
 
@@ -661,6 +702,7 @@ function DailyChallenge({ t, lang, name, onBack, onComplete }) {
         playStart();
         setStarted(true);
         setTimeout(()=>showToast(name?(isHe?`בהצלחה ${name}! 🚀`:`Good luck ${name}! 🚀`):(isHe?"בהצלחה! 🚀":"Good luck! 🚀"), "#FF9F43"), 900);
+        speakDailyStart(lang, name, gender);
       }}>
         {isHe?"בואו נתחיל! 🚀":"Let's Go! 🚀"}
       </button>
@@ -700,7 +742,8 @@ function DailyChallenge({ t, lang, name, onBack, onComplete }) {
         playDone();
         const doneMsg = msg;
         setTimeout(()=>showToast(doneMsg, "#FF9F43"), 500);
-        setTimeout(()=>onComplete(score), 2600);
+        setTimeout(()=>speakDailyDone(lang, name, gender), 1000);
+        setTimeout(()=>onComplete(score), 3200);
       }}>
         {isHe?"חזרה לתפריט 🏠":"Back to Menu 🏠"}
       </button>
@@ -1201,32 +1244,32 @@ function FamilyDash({ t, lang, onBack }) {
 // ── Animal Quiz Game ──────────────────────────────────────────────────────────
 // תמונות מ-Unsplash — חינמיות לחלוטין, אוניברסליות, עוררות רגש
 const ANIMALS_HE = [
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/400px-YellowLabradorLooking_new.jpg",name:"כלב",opts:["כלב","חתול","ארנב","שועל"],emoji:"🐕"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/400px-Kittyply_edit1.jpg",name:"חתול",opts:["חתול","כלב","שועל","זאב"],emoji:"🐈"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/400px-Oryctolagus_cuniculus_Rcdo.jpg",name:"ארנב",opts:["ארנב","חתול","שועל","עכבר"],emoji:"🐇"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Testudo_hermanni_hermanni_female.jpg/400px-Testudo_hermanni_hermanni_female.jpg",name:"צב",opts:["צב","צפרדע","לטאה","נחש"],emoji:"🐢"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Vulpes_vulpes_laying_in_snow.jpg/400px-Vulpes_vulpes_laying_in_snow.jpg",name:"שועל",opts:["שועל","כלב","זאב","חתול"],emoji:"🦊"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Macaca_nigra_self-portrait_large.jpg/400px-Macaca_nigra_self-portrait_large.jpg",name:"קוף",opts:["קוף","כלב","חזיר","דוב"],emoji:"🐒"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/400px-Cat03.jpg",name:"חתול",opts:["חתול","כלב","שועל","ארנב"],emoji:"🐈"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Collage_of_Nine_Dogs.jpg/400px-Collage_of_Nine_Dogs.jpg",name:"כלב",opts:["כלב","זאב","שועל","חתול"],emoji:"🐕"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Elephant_drinking.jpg/400px-Elephant_drinking.jpg",name:"פיל",opts:["פיל","קרנף","היפופוטם","ג'ירפה"],emoji:"🐘"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/400px-Giraffe_Mikumi_National_Park.jpg",name:"ג'ירפה",opts:["ג'ירפה","פיל","זברה","גמל"],emoji:"🦒"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_waiting_in_Namibia.jpg/400px-Lion_waiting_in_Namibia.jpg",name:"אריה",opts:["אריה","נמר","פנתר","יגואר"],emoji:"🦁"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/400px-Grosser_Panda.JPG",name:"פנדה",opts:["פנדה","דוב","רקון","קואלה"],emoji:"🐼"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Vidal-breizh.jpg/400px-Vidal-breizh.jpg",name:"סוס",opts:["סוס","חמור","פרה","גמל"],emoji:"🐴"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Chicken_of_the_sea.jpg/400px-Chicken_of_the_sea.jpg",name:"תרנגול",opts:["תרנגול","ברווז","יונה","עורב"],emoji:"🐓"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/480px-YellowLabradorLooking_new.jpg",name:"כלב",opts:["כלב","חתול","ארנב","שועל"],emoji:"🐕"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/480px-Kittyply_edit1.jpg",name:"חתול",opts:["חתול","כלב","שועל","זאב"],emoji:"🐈"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Elephant_drinking.jpg/480px-Elephant_drinking.jpg",name:"פיל",opts:["פיל","קרנף","היפופוטם","ג'ירפה"],emoji:"🐘"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/480px-Giraffe_Mikumi_National_Park.jpg",name:"ג'ירפה",opts:["ג'ירפה","פיל","זברה","גמל"],emoji:"🦒"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_waiting_in_Namibia.jpg/480px-Lion_waiting_in_Namibia.jpg",name:"אריה",opts:["אריה","נמר","פנתר","יגואר"],emoji:"🦁"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/480px-Grosser_Panda.JPG",name:"פנדה",opts:["פנדה","דוב","רקון","קואלה"],emoji:"🐼"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/480px-Oryctolagus_cuniculus_Rcdo.jpg",name:"ארנב",opts:["ארנב","חתול","שועל","עכבר"],emoji:"🐇"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Vulpes_vulpes_laying_in_snow.jpg/480px-Vulpes_vulpes_laying_in_snow.jpg",name:"שועל",opts:["שועל","כלב","זאב","חתול"],emoji:"🦊"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Collage_of_Nine_Dogs.jpg/480px-Collage_of_Nine_Dogs.jpg",name:"כלב",opts:["כלב","חתול","זאב","שועל"],emoji:"🐕"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Camponotus_flavomarginatus_ant.jpg/480px-Camponotus_flavomarginatus_ant.jpg",name:"נמלה",opts:["נמלה","דבורה","פרפר","חרגול"],emoji:"🐜"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Testudo_hermanni_hermanni_female.jpg/480px-Testudo_hermanni_hermanni_female.jpg",name:"צב",opts:["צב","צפרדע","לטאה","נחש"],emoji:"🐢"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Felis_silvestris_silvestris_small_gradual_decrease.png/480px-Felis_silvestris_silvestris_small_gradual_decrease.png",name:"חתול",opts:["חתול","כלב","שועל","ארנב"],emoji:"🐈"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/480px-Cat03.jpg",name:"חתול",opts:["חתול","כלב","ארנב","עכבר"],emoji:"🐈"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Sleeping_cat_on_her_back.jpg/480px-Sleeping_cat_on_her_back.jpg",name:"חתול",opts:["חתול","ארנב","כלב","שועל"],emoji:"🐈"},
 ];
 const ANIMALS_EN = [
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/400px-YellowLabradorLooking_new.jpg",name:"Dog",opts:["Dog","Cat","Rabbit","Fox"],emoji:"🐕"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/400px-Kittyply_edit1.jpg",name:"Cat",opts:["Cat","Dog","Fox","Wolf"],emoji:"🐈"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/400px-Oryctolagus_cuniculus_Rcdo.jpg",name:"Rabbit",opts:["Rabbit","Cat","Fox","Mouse"],emoji:"🐇"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Testudo_hermanni_hermanni_female.jpg/400px-Testudo_hermanni_hermanni_female.jpg",name:"Turtle",opts:["Turtle","Frog","Lizard","Snake"],emoji:"🐢"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Vulpes_vulpes_laying_in_snow.jpg/400px-Vulpes_vulpes_laying_in_snow.jpg",name:"Fox",opts:["Fox","Dog","Wolf","Cat"],emoji:"🦊"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Elephant_drinking.jpg/400px-Elephant_drinking.jpg",name:"Elephant",opts:["Elephant","Rhino","Hippo","Giraffe"],emoji:"🐘"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/400px-Giraffe_Mikumi_National_Park.jpg",name:"Giraffe",opts:["Giraffe","Elephant","Zebra","Camel"],emoji:"🦒"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_waiting_in_Namibia.jpg/400px-Lion_waiting_in_Namibia.jpg",name:"Lion",opts:["Lion","Tiger","Leopard","Jaguar"],emoji:"🦁"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/400px-Grosser_Panda.JPG",name:"Panda",opts:["Panda","Bear","Raccoon","Koala"],emoji:"🐼"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Vidal-breizh.jpg/400px-Vidal-breizh.jpg",name:"Horse",opts:["Horse","Donkey","Cow","Camel"],emoji:"🐴"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/480px-YellowLabradorLooking_new.jpg",name:"Dog",opts:["Dog","Cat","Rabbit","Fox"],emoji:"🐕"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/480px-Kittyply_edit1.jpg",name:"Cat",opts:["Cat","Dog","Fox","Wolf"],emoji:"🐈"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Elephant_drinking.jpg/480px-Elephant_drinking.jpg",name:"Elephant",opts:["Elephant","Rhino","Hippo","Giraffe"],emoji:"🐘"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/480px-Giraffe_Mikumi_National_Park.jpg",name:"Giraffe",opts:["Giraffe","Elephant","Zebra","Camel"],emoji:"🦒"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_waiting_in_Namibia.jpg/480px-Lion_waiting_in_Namibia.jpg",name:"Lion",opts:["Lion","Tiger","Leopard","Jaguar"],emoji:"🦁"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/480px-Grosser_Panda.JPG",name:"Panda",opts:["Panda","Bear","Raccoon","Koala"],emoji:"🐼"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/480px-Oryctolagus_cuniculus_Rcdo.jpg",name:"Rabbit",opts:["Rabbit","Cat","Fox","Mouse"],emoji:"🐇"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Vulpes_vulpes_laying_in_snow.jpg/480px-Vulpes_vulpes_laying_in_snow.jpg",name:"Fox",opts:["Fox","Dog","Wolf","Cat"],emoji:"🦊"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Testudo_hermanni_hermanni_female.jpg/480px-Testudo_hermanni_hermanni_female.jpg",name:"Turtle",opts:["Turtle","Frog","Lizard","Snake"],emoji:"🐢"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/480px-Cat03.jpg",name:"Cat",opts:["Cat","Dog","Rabbit","Mouse"],emoji:"🐈"},
 ];
 
 function AnimalGame({ t, lang, onBack }) {
@@ -1284,8 +1327,10 @@ function AnimalGame({ t, lang, onBack }) {
           </div>
         )}
         <img
+          key={cur.img}
           src={cur.img}
           alt={cur.name}
+          crossOrigin="anonymous"
           onLoad={()=>setLoaded(true)}
           onError={()=>setLoaded(false)}
           style={{width:"100%",height:240,objectFit:"cover",display:loaded?"block":"none"}}
@@ -1322,7 +1367,8 @@ export default function App() {
   const [screen, setScreen] = useState("lang");
   const [lang,   setLang]   = useState("he");
   const [streak, setStreak] = useState(7);
-  const [name,   setName]   = useState(""); // ריק — ישאל בפתיחה
+  const [name,   setName]   = useState("");
+  const [gender, setGender] = useState("m"); // "m" | "f"
   const t = T[lang] || T.he;
   return (
     <>
@@ -1330,17 +1376,18 @@ export default function App() {
       <div className="app" style={{direction:t.dir}}>
         <ToastOverlay />
         {screen==="lang"    && <LangScreen onSelect={l=>{setLang(l);setScreen("name");}} />}
-        {screen==="name"    && <NameScreen lang={lang} onDone={n=>{
+        {screen==="name"    && <NameScreen lang={lang} onDone={(n,g)=>{
           setName(n);
+          setGender(g||"m");
           if(n) {
             playStart();
             setTimeout(()=>showToast(lang==="he"?`היי ${n}! 🎉`:`Hey ${n}! 🎉`, "#FF9F43"), 400);
-            setTimeout(()=>speakGreeting(lang, n), 800);
+            setTimeout(()=>speakGreeting(lang, n, g||"m"), 800);
           }
           setScreen("menu");
         }} />}
         {screen==="menu"    && <MenuScreen t={t} lang={lang} streak={streak} name={name} onSelect={setScreen} />}
-        {screen==="daily"   && <DailyChallenge t={t} lang={lang} name={name} onBack={()=>setScreen("menu")} onComplete={()=>{setStreak(s=>s+1);setScreen("menu");}} />}
+        {screen==="daily"   && <DailyChallenge t={t} lang={lang} name={name} gender={gender} onBack={()=>setScreen("menu")} onComplete={()=>{setStreak(s=>s+1);setScreen("menu");}} />}
         {screen==="speed"   && <SpeedGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="memory"  && <MemoryGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="language"&& <LanguageGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
