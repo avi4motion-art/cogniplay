@@ -1,3 +1,4 @@
+// CogniPlay v5.1 — gender + TTS + animals fixed
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -1302,23 +1303,16 @@ function AnimalGame({ t, lang, onBack }) {
       </h2>
       <p style={{fontSize:14,color:"#8B7E74",fontWeight:700,marginBottom:14}}>{idx+1}/{animals.length}</p>
 
-      {/* תמונה גדולה — אייקון רק כ-fallback */}
-      <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,background:"#F5F0EB",height:240,position:"relative"}}>
-        {/* אמוג'י כ-fallback — מוסתר כשהתמונה נטענת */}
-        {!loaded && (
-          <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:8,zIndex:1}}>
-            <span style={{fontSize:80}}>{cur.emoji}</span>
-            <span style={{fontSize:13,color:"#8B7E74",fontWeight:600}}>{isHe?"טוען...":"Loading..."}</span>
-          </div>
-        )}
-        <img
-          key={cur.img}
-          src={cur.img}
-          alt={cur.name}
-          onLoad={()=>setLoaded(true)}
-          onError={()=>setLoaded(false)}
-          style={{width:"100%",height:240,objectFit:"cover",position:"absolute",top:0,left:0,zIndex:2,display:loaded?"block":"none"}}
-        />
+      {/* תמונה */}
+      <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,background:"#F5F0EB",height:240,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        {loaded
+          ? <img key={cur.img} src={cur.img} alt={cur.name} style={{width:"100%",height:240,objectFit:"cover",display:"block"}} />
+          : <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+              <span style={{fontSize:80}}>{cur.emoji}</span>
+              <span style={{fontSize:13,color:"#8B7E74",fontWeight:600}}>{isHe?"טוען...":"Loading..."}</span>
+              <img key={cur.img} src={cur.img} alt="" onLoad={()=>setLoaded(true)} onError={()=>setLoaded(false)} style={{display:"none"}} />
+            </div>
+        }
       </div>
 
       <p style={{textAlign:"center",fontSize:20,fontWeight:800,color:"#2D2A26",marginBottom:14}}>
