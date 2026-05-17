@@ -45,8 +45,8 @@ const _tts = (text, lang="he", onDone=null) => {
       if (lang === "he" && heVoice) u.voice = heVoice;
       else if (lang !== "he" && enVoice) u.voice = enVoice;
       if (onDone) u.onend = onDone;
-      // המתן קצת לפני הדיבור כדי שלא יחתוך
-      setTimeout(() => window.speechSynthesis.speak(u), 150);
+      // המתן לפני הדיבור כדי שלא יחתוך
+      setTimeout(() => window.speechSynthesis.speak(u), 300);
     };
     if (window.speechSynthesis.getVoices().length > 0) {
       speak();
@@ -364,23 +364,15 @@ he:[
   {l:"מה נאוו על ההרים רגלי ___",a:"מבשר",o:["מבשר","שלום","אדם","נביא"],t:"מה נאוו",e:"⛰️"},
   {l:"שיר המעלות בשוב ה׳ את שיבת ___",a:"ציון",o:["ציון","ירושלים","ישראל","עמו"],t:"שיר המעלות",e:"🏔️"},
   {l:"פרפר נחמד פרפר נחמד עוף עוף אל ה___",a:"שדה",o:["שדה","פרח","עץ","שמים"],t:"פרפר נחמד",e:"🦋"},
-  {l:"ראש השנה בא לו ראש השנה ___ לנו",a:"בא",o:["בא","שר","חג","טוב"],t:"ראש השנה",e:"🍎"},
+  {l:"ראש השנה בא לו שנה טובה ___",a:"לנו",o:["לנו","תבוא","הגיע","שמחה"],t:"ראש השנה",e:"🍎"},
   {l:"שבת שלום שבת שלום שבת שבת ___",a:"שלום",o:["שלום","טובה","קדושה","שמחה"],t:"שבת שלום",e:"🕯️"},
-  {l:"הוי הוי הוי ___",a:"הנגב",o:["הנגב","הכרמל","הגליל","הגולן"],t:"שיר לנגב",e:"🌵"},
-  {l:"קום והתהלך בארץ לארכה ___",a:"ולרוחבה",o:["ולרוחבה","ולגובהה","ולעומקה","ולאורכה"],t:"קום והתהלך",e:"🇮🇱"},
   {l:"שיר השירים אשר ל___",a:"שלמה",o:["שלמה","דוד","משה","יהושע"],t:"שיר השירים",e:"💛"},
   {l:"אם אשכחך ירושלים תשכח ימיני ___ לשוני",a:"תדבק",o:["תדבק","תישכח","תחרש","תקפא"],t:"אם אשכחך",e:"🕍"},
-  {l:"יש לי תמונה ישנה של ___ ושל אבא",a:"אמא",o:["אמא","סבתא","ילדות","שכונה"],t:"תמונה ישנה",e:"📸"},
   {l:"זמר נוגה זמר של ___ ישן",a:"פעם",o:["פעם","ילדות","חלום","אהבה"],t:"זמר נוגה",e:"🎵"},
-  {l:"מה אברך את הבוקר הזה אם לא ב___",a:"שיר",o:["שיר","תפילה","ברכה","ריקוד"],t:"בוקר טוב",e:"☀️"},
   {l:"אהבת עולם אהבתנו ה׳ ___ על אבותינו",a:"רחמת",o:["רחמת","שמרת","ברכת","שמעת"],t:"אהבת עולם",e:"❤️"},
   {l:"לדוד ה׳ ___ ורועי",a:"אורי",o:["אורי","אלי","עוזי","שמי"],t:"ה׳ אורי",e:"🌟"},
-  {l:"ממעמקים קראתיך ___",a:"ה׳",o:["ה׳","אלי","אדוני","שמי"],t:"ממעמקים",e:"🙏"},
   {l:"צאנה וראינה בנות ___ במלך שלמה",a:"ציון",o:["ציון","ירושלים","ישראל","יהודה"],t:"צאנה וראינה",e:"👑"},
-  {l:"שמחו בירושלים וגילו ___ כל אוהביה",a:"בה",o:["בה","בה","אתה","עמה"],t:"שמחו בירושלים",e:"🎉"},
-  {l:"על שלושה דברים העולם עומד: על ה___, על העבודה",a:"תורה",o:["תורה","אמת","שלום","חסד"],t:"על שלושה",e:"📚"},
-  {l:"הצור תמים פועלו כי כל ___ צדק",a:"דרכיו",o:["דרכיו","מעשיו","פעליו","אמריו"],t:"הצור תמים",e:"🪨"},
-  {l:"ואני תפילתי לך ה׳ עת ___",a:"רצון",o:["רצון","תפילה","חסד","אמת"],t:"ואני תפילתי",e:"🙏"},
+  {l:"על שלושה דברים העולם עומד על ה___ על העבודה ועל גמילות חסדים",a:"תורה",o:["תורה","אמת","שלום","חסד"],t:"על שלושה",e:"📚"},
   {l:"יגדל אלוהים חי וישתבח נמצא ואין ___ כמוציאו",a:"עת",o:["עת","קץ","זמן","רגע"],t:"יגדל",e:"✡️"},
   {l:"אדון עולם אשר מלך בטרם כל ___ נברא",a:"יציר",o:["יציר","דבר","עולם","חיים"],t:"אדון עולם",e:"🌌"},
 ],
@@ -1244,45 +1236,46 @@ function FamilyDash({ t, lang, onBack }) {
 // ── Animal Quiz Game ──────────────────────────────────────────────────────────
 // תמונות מ-Unsplash — חינמיות לחלוטין, אוניברסליות, עוררות רגש
 const ANIMALS_HE = [
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/480px-YellowLabradorLooking_new.jpg",name:"כלב",opts:["כלב","חתול","ארנב","שועל"],emoji:"🐕"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/480px-Kittyply_edit1.jpg",name:"חתול",opts:["חתול","כלב","שועל","זאב"],emoji:"🐈"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Elephant_drinking.jpg/480px-Elephant_drinking.jpg",name:"פיל",opts:["פיל","קרנף","היפופוטם","ג'ירפה"],emoji:"🐘"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/480px-Giraffe_Mikumi_National_Park.jpg",name:"ג'ירפה",opts:["ג'ירפה","פיל","זברה","גמל"],emoji:"🦒"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_waiting_in_Namibia.jpg/480px-Lion_waiting_in_Namibia.jpg",name:"אריה",opts:["אריה","נמר","פנתר","יגואר"],emoji:"🦁"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/480px-Grosser_Panda.JPG",name:"פנדה",opts:["פנדה","דוב","רקון","קואלה"],emoji:"🐼"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/480px-Oryctolagus_cuniculus_Rcdo.jpg",name:"ארנב",opts:["ארנב","חתול","שועל","עכבר"],emoji:"🐇"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Vulpes_vulpes_laying_in_snow.jpg/480px-Vulpes_vulpes_laying_in_snow.jpg",name:"שועל",opts:["שועל","כלב","זאב","חתול"],emoji:"🦊"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Collage_of_Nine_Dogs.jpg/480px-Collage_of_Nine_Dogs.jpg",name:"כלב",opts:["כלב","חתול","זאב","שועל"],emoji:"🐕"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Camponotus_flavomarginatus_ant.jpg/480px-Camponotus_flavomarginatus_ant.jpg",name:"נמלה",opts:["נמלה","דבורה","פרפר","חרגול"],emoji:"🐜"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Testudo_hermanni_hermanni_female.jpg/480px-Testudo_hermanni_hermanni_female.jpg",name:"צב",opts:["צב","צפרדע","לטאה","נחש"],emoji:"🐢"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Felis_silvestris_silvestris_small_gradual_decrease.png/480px-Felis_silvestris_silvestris_small_gradual_decrease.png",name:"חתול",opts:["חתול","כלב","שועל","ארנב"],emoji:"🐈"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/480px-Cat03.jpg",name:"חתול",opts:["חתול","כלב","ארנב","עכבר"],emoji:"🐈"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Sleeping_cat_on_her_back.jpg/480px-Sleeping_cat_on_her_back.jpg",name:"חתול",opts:["חתול","ארנב","כלב","שועל"],emoji:"🐈"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/480px-YellowLabradorLooking_new.jpg",name:"כלב",opts:["כלב","חתול","שועל","ארנב"],emoji:"🐕"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/480px-Kittyply_edit1.jpg",name:"חתול",opts:["חתול","כלב","ארנב","שועל"],emoji:"🐈"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Elephant_drinking.jpg/480px-Elephant_drinking.jpg",name:"פיל",opts:["פיל","ג'ירפה","קרנף","היפופוטם"],emoji:"🐘"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/480px-Giraffe_Mikumi_National_Park.jpg",name:"ג'ירפה",opts:["ג'ירפה","פיל","גמל","זברה"],emoji:"🦒"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_waiting_in_Namibia.jpg/480px-Lion_waiting_in_Namibia.jpg",name:"אריה",opts:["אריה","נמר","זאב","פנתר"],emoji:"🦁"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/480px-Grosser_Panda.JPG",name:"פנדה",opts:["פנדה","דוב","קואלה","רקון"],emoji:"🐼"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/480px-Oryctolagus_cuniculus_Rcdo.jpg",name:"ארנב",opts:["ארנב","חתול","עכבר","שועל"],emoji:"🐇"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Vulpes_vulpes_laying_in_snow.jpg/480px-Vulpes_vulpes_laying_in_snow.jpg",name:"שועל",opts:["שועל","זאב","כלב","חתול"],emoji:"🦊"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Testudo_hermanni_hermanni_female.jpg/480px-Testudo_hermanni_hermanni_female.jpg",name:"צב",opts:["צב","צפרדע","נחש","לטאה"],emoji:"🐢"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/480px-Cat03.jpg",name:"חתול",opts:["חתול","כלב","ארנב","שועל"],emoji:"🐈"},
 ];
 const ANIMALS_EN = [
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/480px-YellowLabradorLooking_new.jpg",name:"Dog",opts:["Dog","Cat","Rabbit","Fox"],emoji:"🐕"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/480px-Kittyply_edit1.jpg",name:"Cat",opts:["Cat","Dog","Fox","Wolf"],emoji:"🐈"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Elephant_drinking.jpg/480px-Elephant_drinking.jpg",name:"Elephant",opts:["Elephant","Rhino","Hippo","Giraffe"],emoji:"🐘"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/480px-Giraffe_Mikumi_National_Park.jpg",name:"Giraffe",opts:["Giraffe","Elephant","Zebra","Camel"],emoji:"🦒"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_waiting_in_Namibia.jpg/480px-Lion_waiting_in_Namibia.jpg",name:"Lion",opts:["Lion","Tiger","Leopard","Jaguar"],emoji:"🦁"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/480px-Grosser_Panda.JPG",name:"Panda",opts:["Panda","Bear","Raccoon","Koala"],emoji:"🐼"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/480px-Oryctolagus_cuniculus_Rcdo.jpg",name:"Rabbit",opts:["Rabbit","Cat","Fox","Mouse"],emoji:"🐇"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Vulpes_vulpes_laying_in_snow.jpg/480px-Vulpes_vulpes_laying_in_snow.jpg",name:"Fox",opts:["Fox","Dog","Wolf","Cat"],emoji:"🦊"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Testudo_hermanni_hermanni_female.jpg/480px-Testudo_hermanni_hermanni_female.jpg",name:"Turtle",opts:["Turtle","Frog","Lizard","Snake"],emoji:"🐢"},
-  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/480px-Cat03.jpg",name:"Cat",opts:["Cat","Dog","Rabbit","Mouse"],emoji:"🐈"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/480px-YellowLabradorLooking_new.jpg",name:"Dog",opts:["Dog","Cat","Fox","Rabbit"],emoji:"🐕"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/480px-Kittyply_edit1.jpg",name:"Cat",opts:["Cat","Dog","Rabbit","Fox"],emoji:"🐈"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Elephant_drinking.jpg/480px-Elephant_drinking.jpg",name:"Elephant",opts:["Elephant","Giraffe","Rhino","Hippo"],emoji:"🐘"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Giraffe_Mikumi_National_Park.jpg/480px-Giraffe_Mikumi_National_Park.jpg",name:"Giraffe",opts:["Giraffe","Elephant","Camel","Zebra"],emoji:"🦒"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_waiting_in_Namibia.jpg/480px-Lion_waiting_in_Namibia.jpg",name:"Lion",opts:["Lion","Tiger","Wolf","Panther"],emoji:"🦁"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/480px-Grosser_Panda.JPG",name:"Panda",opts:["Panda","Bear","Koala","Raccoon"],emoji:"🐼"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/480px-Oryctolagus_cuniculus_Rcdo.jpg",name:"Rabbit",opts:["Rabbit","Cat","Mouse","Fox"],emoji:"🐇"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Vulpes_vulpes_laying_in_snow.jpg/480px-Vulpes_vulpes_laying_in_snow.jpg",name:"Fox",opts:["Fox","Wolf","Dog","Cat"],emoji:"🦊"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Testudo_hermanni_hermanni_female.jpg/480px-Testudo_hermanni_hermanni_female.jpg",name:"Turtle",opts:["Turtle","Frog","Snake","Lizard"],emoji:"🐢"},
+  {img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/480px-Cat03.jpg",name:"Cat",opts:["Cat","Dog","Rabbit","Fox"],emoji:"🐈"},
 ];
 
 function AnimalGame({ t, lang, onBack }) {
   const all = lang==="he" ? ANIMALS_HE : ANIMALS_EN;
   const isHe = lang==="he";
-  const isRtl = T[lang].dir==="rtl";
   const [animals] = useState(()=>shuffle(all).slice(0,7));
   const [idx, setIdx] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  // שמור את האפשרויות המוערבלות ב-state — לא מחשב מחדש בכל רנדור
+  const [shuffledOpts, setShuffledOpts] = useState(()=>shuffle(all[0]?.opts||[]));
   const cur = animals[idx];
+
+  useEffect(()=>{
+    if(cur) setShuffledOpts(shuffle([...cur.opts]));
+  },[idx]);
 
   const handle = (opt) => {
     if(chosen) return;
@@ -1341,9 +1334,9 @@ function AnimalGame({ t, lang, onBack }) {
         {isHe?"מה בעל החיים הזה?":"What animal is this?"}
       </p>
 
-      {/* אפשרויות */}
+      {/* אפשרויות — מהרשימה השמורה בstate */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-        {shuffle(cur.opts).map(opt=>{
+        {shuffledOpts.map(opt=>{
           const isPicked=chosen===opt, isCorrect=opt===cur.name;
           let bg="white",border="#E8E0D8",color="#2D2A26";
           if(isPicked&&isCorrect){bg="#EDFFF8";border="#1DD1A1";}
