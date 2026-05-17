@@ -28,7 +28,64 @@ const playStart   = ()=>_play([{freq:392,dur:.12,vol:.55},{freq:523,delay:.13,du
 
 
 
-// ── TTS ───────────────────────────────────────────────────────────────────────
+// ── TTS — קול עברי אמיתי ────────────────────────────────────────────────────
+const _tts = (text, lang="he") => {
+  try {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === "he" ? "he-IL" : "en-US";
+    u.rate = 0.85;
+    u.pitch = 1.05;
+    u.volume = 1;
+    // נסה למצוא קול עברי
+    const voices = window.speechSynthesis.getVoices();
+    const heVoice = voices.find(v => v.lang === "he-IL" || v.lang === "he");
+    if (heVoice && lang === "he") u.voice = heVoice;
+    window.speechSynthesis.speak(u);
+  } catch(e) {}
+};
+
+// פידבק קולי מלא
+const speakCorrect  = (lang, name) => {
+  const msgs = lang==="he"
+    ? ["מצוין!", "כל הכבוד!", "נכון מאוד!", "יפה מאוד!", "מעולה!"]
+    : ["Correct!", "Well done!", "Excellent!", "Great job!", "Perfect!"];
+  _tts(msgs[Math.floor(Math.random()*msgs.length)], lang);
+};
+const speakWrong = (lang) => {
+  _tts(lang==="he" ? "כמעט! נסה שוב" : "Almost! Try again", lang);
+};
+const speakDailyStart = (lang, name) => {
+  const msgs = lang==="he" ? [
+    `כל הכבוד${name?" "+name:""}! זה הזמן שלך לזרוח!`,
+    `בואו נתחיל${name?" "+name:""}! המוח שלך מוכן!`,
+    `היום יהיה נהדר${name?" "+name:""}! בהצלחה!`,
+    `קדימה${name?" "+name:""}! 10 דקות לבריאות המוח!`,
+  ] : [
+    `Let's go${name?" "+name:""}! Time to shine!`,
+    `Ready${name?" "+name:""}? Let's keep that mind sharp!`,
+    `Great to see you${name?" "+name:""}! Let's begin!`,
+  ];
+  setTimeout(() => _tts(msgs[Math.floor(Math.random()*msgs.length)], lang), 600);
+};
+const speakDailyDone = (lang, name) => {
+  const msgs = lang==="he" ? [
+    `כל הכבוד${name?" "+name:""}! עשית עבודה מדהימה היום!`,
+    `וואו${name?" "+name:""}! המוח שלך עבד קשה!`,
+    `מדהים${name?" "+name:""}! אני גאה בך!`,
+    `${name?name+",":""}היום עשית משהו נפלא לבריאות המוח שלך!`,
+  ] : [
+    `Amazing${name?" "+name:""}! You did a wonderful job today!`,
+    `Well done${name?" "+name:""}! Your brain worked hard!`,
+    `I'm so proud of you${name?" "+name:""}!`,
+  ];
+  setTimeout(() => _tts(msgs[Math.floor(Math.random()*msgs.length)], lang), 400);
+};
+const speakGreeting = (lang, name) => {
+  if (name) _tts(lang==="he" ? `היי ${name}! ברוך הבא!` : `Hey ${name}! Welcome back!`, lang);
+};
+
 // ── פידבק ויזואלי — event-based toast ───────────────────────────────────────
 const _toastListeners = [];
 const onToast = (fn) => { _toastListeners.push(fn); return ()=>{ const i=_toastListeners.indexOf(fn); if(i>-1)_toastListeners.splice(i,1); }; };
@@ -63,16 +120,18 @@ const MSGS = {
   en:{ ok:["Correct! 🎉","Well done! ⭐","Excellent! 🌟","Great job! 💛","Perfect! 🏆"], no:["Almost! 💪","Try again 🔄","Not quite! 😊"] },
 };
 const rnd = a => a[Math.floor(Math.random()*a.length)];
-const sayCorrect    = l => { playCorrect(); showToast(rnd(MSGS[l].ok), "#1DD1A1"); };
-const sayWrong      = l => { playWrong();   showToast(rnd(MSGS[l].no), "#FF6B6B"); };
+const sayCorrect    = l => { playCorrect(); showToast(rnd(MSGS[l].ok), "#1DD1A1"); speakCorrect(l); };
+const sayWrong      = l => { playWrong();   showToast(rnd(MSGS[l].no), "#FF6B6B"); speakWrong(l); };
 const sayDone       = l => { playDone(); };
 const sayDailyStart = (l, n) => {
   playStart();
   setTimeout(()=>showToast(n?(l==="he"?`בהצלחה ${n}! 🚀`:`Good luck ${n}! 🚀`):(l==="he"?"בהצלחה! 🚀":"Good luck! 🚀"), "#FF9F43"), 850);
+  speakDailyStart(l, n);
 };
 const sayDailyDone  = (l, n, msg) => {
   playDone();
   setTimeout(()=>showToast(msg||(n?(l==="he"?`כל הכבוד ${n}! 🎊`:`Well done ${n}! 🎊`):(l==="he"?"כל הכבוד! 🎊":"Well done! 🎊")), "#FF9F43"), 500);
+  speakDailyDone(l, n);
 };
 
 
@@ -263,6 +322,26 @@ he:[
   {l:"כי בשמחה תצאו ובשלום ___",a:"תובלון",o:["תובלון","תלכון","תבואו","תשובון"],t:"כי בשמחה",e:"✨"},
   {l:"מה נאוו על ההרים רגלי ___",a:"מבשר",o:["מבשר","שלום","אדם","נביא"],t:"מה נאוו",e:"⛰️"},
   {l:"שיר המעלות בשוב ה׳ את שיבת ___",a:"ציון",o:["ציון","ירושלים","ישראל","עמו"],t:"שיר המעלות",e:"🏔️"},
+  {l:"פרפר נחמד פרפר נחמד עוף עוף אל ה___",a:"שדה",o:["שדה","פרח","עץ","שמים"],t:"פרפר נחמד",e:"🦋"},
+  {l:"ראש השנה בא לו ראש השנה ___ לנו",a:"בא",o:["בא","שר","חג","טוב"],t:"ראש השנה",e:"🍎"},
+  {l:"שבת שלום שבת שלום שבת שבת ___",a:"שלום",o:["שלום","טובה","קדושה","שמחה"],t:"שבת שלום",e:"🕯️"},
+  {l:"הוי הוי הוי ___",a:"הנגב",o:["הנגב","הכרמל","הגליל","הגולן"],t:"שיר לנגב",e:"🌵"},
+  {l:"קום והתהלך בארץ לארכה ___",a:"ולרוחבה",o:["ולרוחבה","ולגובהה","ולעומקה","ולאורכה"],t:"קום והתהלך",e:"🇮🇱"},
+  {l:"שיר השירים אשר ל___",a:"שלמה",o:["שלמה","דוד","משה","יהושע"],t:"שיר השירים",e:"💛"},
+  {l:"אם אשכחך ירושלים תשכח ימיני ___ לשוני",a:"תדבק",o:["תדבק","תישכח","תחרש","תקפא"],t:"אם אשכחך",e:"🕍"},
+  {l:"יש לי תמונה ישנה של ___ ושל אבא",a:"אמא",o:["אמא","סבתא","ילדות","שכונה"],t:"תמונה ישנה",e:"📸"},
+  {l:"זמר נוגה זמר של ___ ישן",a:"פעם",o:["פעם","ילדות","חלום","אהבה"],t:"זמר נוגה",e:"🎵"},
+  {l:"מה אברך את הבוקר הזה אם לא ב___",a:"שיר",o:["שיר","תפילה","ברכה","ריקוד"],t:"בוקר טוב",e:"☀️"},
+  {l:"אהבת עולם אהבתנו ה׳ ___ על אבותינו",a:"רחמת",o:["רחמת","שמרת","ברכת","שמעת"],t:"אהבת עולם",e:"❤️"},
+  {l:"לדוד ה׳ ___ ורועי",a:"אורי",o:["אורי","אלי","עוזי","שמי"],t:"ה׳ אורי",e:"🌟"},
+  {l:"ממעמקים קראתיך ___",a:"ה׳",o:["ה׳","אלי","אדוני","שמי"],t:"ממעמקים",e:"🙏"},
+  {l:"צאנה וראינה בנות ___ במלך שלמה",a:"ציון",o:["ציון","ירושלים","ישראל","יהודה"],t:"צאנה וראינה",e:"👑"},
+  {l:"שמחו בירושלים וגילו ___ כל אוהביה",a:"בה",o:["בה","בה","אתה","עמה"],t:"שמחו בירושלים",e:"🎉"},
+  {l:"על שלושה דברים העולם עומד: על ה___, על העבודה",a:"תורה",o:["תורה","אמת","שלום","חסד"],t:"על שלושה",e:"📚"},
+  {l:"הצור תמים פועלו כי כל ___ צדק",a:"דרכיו",o:["דרכיו","מעשיו","פעליו","אמריו"],t:"הצור תמים",e:"🪨"},
+  {l:"ואני תפילתי לך ה׳ עת ___",a:"רצון",o:["רצון","תפילה","חסד","אמת"],t:"ואני תפילתי",e:"🙏"},
+  {l:"יגדל אלוהים חי וישתבח נמצא ואין ___ כמוציאו",a:"עת",o:["עת","קץ","זמן","רגע"],t:"יגדל",e:"✡️"},
+  {l:"אדון עולם אשר מלך בטרם כל ___ נברא",a:"יציר",o:["יציר","דבר","עולם","חיים"],t:"אדון עולם",e:"🌌"},
 ],
 en:[
   {l:"You are my sunshine, my only ___",a:"sunshine",o:["sunshine","darling","love","light"],t:"You Are My Sunshine",e:"☀️"},
@@ -348,6 +427,24 @@ const DAILY_TIPS = {
     {icon:"✍️", tip:"כתיבת יומן מחזקת זיכרון אפיזודי"},
     {icon:"🎯", tip:"לשחק משחקים כמו אלה שכאן — 10 דקות ביום — מועיל קלינית!"},
     {icon:"🤝", tip:"שיחה עם אנשים אהובים מפחיתה בדידות ומגנה על המוח"},
+    {icon:"🥦", tip:"ירקות ירוקים כמו ברוקולי ותרד עשירים בחומרים המגנים על המוח"},
+    {icon:"🎨", tip:"יצירה אמנותית — ציור, סריגה, בישול — מפעילה אזורים ייחודיים במוח"},
+    {icon:"🚴", tip:"פעילות גופנית סדירה מגדילה נפח ההיפוקמפוס — מרכז הזיכרון"},
+    {icon:"☕", tip:"1-2 כוסות קפה ביום קשורות לסיכון נמוך יותר לאלצהיימר"},
+    {icon:"🌊", tip:"שחייה משלבת פעילות גופנית וקואורדינציה — מצוינת למוח"},
+    {icon:"🎭", tip:"צפייה בתיאטרון, קולנוע ואמנות מפעילה רשתות רגשיות ויצירתיות"},
+    {icon:"🧠", tip:"למד שיר חדש בעל פה — אחת הפעילויות הטובות ביותר לזיכרון"},
+    {icon:"🌸", tip:"גינון מפחית מתח, מגביר תנועה, ומחבר לטבע — שלישיית מנצחים"},
+    {icon:"📞", tip:"התקשר לחבר ישן — חיבורים חברתיים פעילים מגנים על המוח"},
+    {icon:"🍳", tip:"בישול מתכון חדש משלב תכנון, זיכרון, ויצירתיות — מצוין למוח"},
+    {icon:"🌅", tip:"צפה בשקיעה בחוץ — האור הטבעי מסנכרן את השעון הביולוגי שלך"},
+    {icon:"💃", tip:"ריקוד — גם בבית — משלב מוזיקה, תנועה וזיכרון מוטורי"},
+    {icon:"🎲", tip:"שחמט, שש-בש, ופאזלים — משחקי אסטרטגיה מפעילים חשיבה מתוכננת"},
+    {icon:"🍵", tip:"תה ירוק עשיר בנוגדי חמצון המגנים על תאי המוח"},
+    {icon:"😂", tip:"צחוק מפחית קורטיזול ומגביר אנדורפינים — טוב למוח ולנפש!"},
+    {icon:"🙏", tip:"תרגיל כפיים: ספור אחורה מ-100 ב-7 — מאמן ריכוז וחישוב"},
+    {icon:"🌻", tip:"הביטו בתמונות ישנות — זיכרון חזותי מגרה רשתות נוסטלגיה במוח"},
+    {icon:"🎸", tip:"לנגן כלי נגינה — גם בסיסי — הוא אחד האימונים הטובים ביותר למוח"},
   ],
   en: [
     {icon:"😴", tip:"7-9 hours of sleep per night reduces dementia risk by 30%"},
@@ -364,6 +461,14 @@ const DAILY_TIPS = {
     {icon:"✍️", tip:"Keeping a journal strengthens episodic memory"},
     {icon:"🎯", tip:"Playing games like these — 10 minutes daily — is clinically proven!"},
     {icon:"🤝", tip:"Talking with loved ones reduces loneliness and protects the brain"},
+    {icon:"🥦", tip:"Green vegetables like broccoli and spinach protect brain cells"},
+    {icon:"🎨", tip:"Creative activities — painting, knitting, cooking — activate unique brain areas"},
+    {icon:"🚴", tip:"Regular exercise grows the hippocampus — your brain's memory center"},
+    {icon:"☕", tip:"1-2 cups of coffee daily is linked to lower Alzheimer's risk"},
+    {icon:"😂", tip:"Laughter reduces cortisol and boosts endorphins — great for brain and soul!"},
+    {icon:"🎲", tip:"Chess, puzzles, and strategy games activate planning and memory"},
+    {icon:"💃", tip:"Dancing combines music, movement and motor memory — wonderful for the brain"},
+    {icon:"📞", tip:"Call an old friend — active social connections protect the brain"},
   ],
 };
 
@@ -453,13 +558,13 @@ function NameScreen({ lang, onDone }) {
 // buildDailySteps defined outside component to avoid recreation
 function buildDailySteps(lang) {
   return [
-    {game:"speed",    data:shuffle(lang==="he"?SPEED_HE:SPEED_EN).slice(0,2)},
-    {game:"language", data:shuffle(SENTENCES[lang]).slice(0,2)},
-    {game:"music",    data:shuffle(SONGS[lang]).slice(0,2)},
+    {game:"speed",    data:shuffle(lang==="he"?SPEED_HE:SPEED_EN).slice(0,3)},
+    {game:"language", data:shuffle(SENTENCES[lang]).slice(0,3)},
+    {game:"music",    data:shuffle(SONGS[lang]).slice(0,3)},
     {game:"animal",   data:shuffle(lang==="he"?ANIMALS_HE:ANIMALS_EN).slice(0,2)},
-    {game:"trivia",   data:shuffle(TRIVIA[lang]).slice(0,2)},
-    {game:"numbers",  data:shuffle(NUMBERS).slice(0,1)},
-    {game:"sorting",  data:shuffle(ROOM_ITEMS[lang]).slice(0,2)},
+    {game:"trivia",   data:shuffle(TRIVIA[lang]).slice(0,3)},
+    {game:"numbers",  data:shuffle(NUMBERS).slice(0,2)},
+    {game:"sorting",  data:shuffle(ROOM_ITEMS[lang]).slice(0,3)},
   ];
 }
 
@@ -1161,15 +1266,20 @@ function AnimalGame({ t, lang, onBack }) {
       </h2>
       <p style={{fontSize:14,color:"#8B7E74",fontWeight:700,marginBottom:14}}>{idx+1}/{animals.length}</p>
 
-      {/* תמונה */}
-      <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,position:"relative",background:"#F5F0EB",height:220,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        {!loaded && <span style={{fontSize:60}}>{cur.emoji}</span>}
+      {/* תמונה גדולה — אייקון רק כ-fallback */}
+      <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,background:"#F5F0EB",height:240}}>
+        {!loaded && (
+          <div style={{height:240,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:8}}>
+            <span style={{fontSize:80}}>{cur.emoji}</span>
+            <span style={{fontSize:13,color:"#8B7E74",fontWeight:600}}>{isHe?"טוען תמונה...":"Loading..."}</span>
+          </div>
+        )}
         <img
           src={cur.img}
-          alt="animal"
+          alt={cur.name}
           onLoad={()=>setLoaded(true)}
           onError={()=>setLoaded(false)}
-          style={{width:"100%",height:220,objectFit:"cover",display:loaded?"block":"none",position:loaded?"relative":"absolute"}}
+          style={{width:"100%",height:240,objectFit:"cover",display:loaded?"block":"none"}}
         />
       </div>
 
@@ -1216,6 +1326,7 @@ export default function App() {
           if(n) {
             playStart();
             setTimeout(()=>showToast(lang==="he"?`היי ${n}! 🎉`:`Hey ${n}! 🎉`, "#FF9F43"), 400);
+            setTimeout(()=>speakGreeting(lang, n), 800);
           }
           setScreen("menu");
         }} />}
