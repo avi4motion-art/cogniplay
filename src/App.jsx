@@ -29,35 +29,26 @@ const playStart   = ()=>_play([{freq:392,dur:.12,vol:.55},{freq:523,delay:.13,du
 
 
 // ── TTS — קול עברי אמיתי ────────────────────────────────────────────────────
-const _tts = (text, lang="he", onDone=null) => {
+const _tts = (text, lang="he") => {
   try {
-    if (!window.speechSynthesis) { if(onDone) onDone(); return; }
+    if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const speak = () => {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang === "he" ? "he-IL" : "en-US";
-      u.rate = 0.80;
-      u.pitch = 1.0;
-      u.volume = 1;
-      const voices = window.speechSynthesis.getVoices();
-      const heVoice = voices.find(v => v.lang==="he-IL" || v.lang==="he" || v.lang.startsWith("he"));
-      const enVoice = voices.find(v => v.lang==="en-US" || v.lang.startsWith("en"));
-      if (lang === "he" && heVoice) u.voice = heVoice;
-      else if (lang !== "he" && enVoice) u.voice = enVoice;
-      if (onDone) u.onend = onDone;
-      // המתן לפני הדיבור כדי שלא יחתוך
-      setTimeout(() => window.speechSynthesis.speak(u), 300);
-    };
-    if (window.speechSynthesis.getVoices().length > 0) {
-      speak();
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        speak();
-        window.speechSynthesis.onvoiceschanged = null;
-      };
-      setTimeout(speak, 600);
-    }
-  } catch(e) { if(onDone) onDone(); }
+    setTimeout(() => {
+      try {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = lang === "he" ? "he-IL" : "en-US";
+        u.rate = 0.85;
+        u.pitch = 1.0;
+        u.volume = 1.0;
+        const voices = window.speechSynthesis.getVoices();
+        const best = lang==="he"
+          ? (voices.find(v=>v.lang==="he-IL") || voices.find(v=>v.lang.startsWith("he")))
+          : (voices.find(v=>v.lang==="en-US") || voices.find(v=>v.lang.startsWith("en")));
+        if (best) u.voice = best;
+        window.speechSynthesis.speak(u);
+      } catch(e) {}
+    }, 400);
+  } catch(e) {}
 };
 
 // פידבק קולי מלא
@@ -307,7 +298,7 @@ he:[
   {p:"לא בחיל ולא בכוח כי אם ברוחי אמר ___",a:"ה׳",o:["ה׳","האל","אדוני","שמים"]},
   {p:"ראש השנה בא לו ראש השנה ___",a:"בא",o:["בא","היה","עבר","הגיע"]},
   {p:"תפוח בדבש נאכל שנה טובה ___",a:"נקבל",o:["נקבל","נשיר","נשחק","נחגוג"]},
-  {p:"פרפר נחמד פרח לך ___",a:"אל",o:["אל","עם","בין","מן"]},
+  {p:"תפוח בדבש נאכל שנה טובה ___",a:"נקבל",o:["נקבל","נשיר","נשחק","נחגוג"]},
 ],
 en:[
   {p:"Better safe than ___",a:"sorry",o:["sorry","late","lost","done"]},
@@ -1312,21 +1303,21 @@ function AnimalGame({ t, lang, onBack }) {
       <p style={{fontSize:14,color:"#8B7E74",fontWeight:700,marginBottom:14}}>{idx+1}/{animals.length}</p>
 
       {/* תמונה גדולה — אייקון רק כ-fallback */}
-      <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,background:"#F5F0EB",height:240}}>
+      <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,background:"#F5F0EB",height:240,position:"relative"}}>
+        {/* אמוג'י כ-fallback — מוסתר כשהתמונה נטענת */}
         {!loaded && (
-          <div style={{height:240,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:8}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:8,zIndex:1}}>
             <span style={{fontSize:80}}>{cur.emoji}</span>
-            <span style={{fontSize:13,color:"#8B7E74",fontWeight:600}}>{isHe?"טוען תמונה...":"Loading..."}</span>
+            <span style={{fontSize:13,color:"#8B7E74",fontWeight:600}}>{isHe?"טוען...":"Loading..."}</span>
           </div>
         )}
         <img
           key={cur.img}
           src={cur.img}
           alt={cur.name}
-          crossOrigin="anonymous"
           onLoad={()=>setLoaded(true)}
           onError={()=>setLoaded(false)}
-          style={{width:"100%",height:240,objectFit:"cover",display:loaded?"block":"none"}}
+          style={{width:"100%",height:240,objectFit:"cover",position:"absolute",top:0,left:0,zIndex:2,display:loaded?"block":"none"}}
         />
       </div>
 
