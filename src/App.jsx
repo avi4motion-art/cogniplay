@@ -1,4 +1,4 @@
-// CogniPlay v5.2 — VERIFIED BUILD 18-05-2025
+// CogniPlay v5.3 — images + gender + TTS
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -1219,37 +1219,55 @@ function FamilyDash({ t, lang, onBack }) {
   return(<div className="screen" style={{direction:T[lang].dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><span style={{fontSize:16,fontWeight:800}}>📊 {t.family}</span></div><div className="card" style={{background:"#EDFFF8",border:"2px solid #1DD1A1",marginBottom:14}}><p style={{fontSize:14,fontWeight:800,color:"#0A6B4F"}}>✅ {isHe?"שיחקה 4 פעמים השבוע! 🎉":"Played 4 times this week! 🎉"}</p></div><div className="card" style={{marginBottom:14}}><p style={{fontSize:15,fontWeight:800,marginBottom:10}}>{isHe?"ציון יומי":"Daily score"}</p><div style={{display:"flex",alignItems:"flex-end",gap:8,height:90}}>{WD.map((d,i)=>(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}><div style={{width:"100%",borderRadius:"8px 8px 0 0",background:d.s>=80?"#1DD1A1":"#FF9F43",height:`${(d.s/mx)*80}px`}}/><span style={{fontSize:12,fontWeight:700,color:"#8B7E74"}}>{d.d}</span></div>))}</div></div><div className="card" style={{marginBottom:14}}><p style={{fontSize:15,fontWeight:800,marginBottom:12}}>{isHe?"לפי תחום":"By domain"}</p>{MD.map(m=>(<div key={m.l} style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}><span style={{fontSize:13,fontWeight:700,width:60,color:"#2D2A26"}}>{m.l}</span><div style={{flex:1,background:"#EEE",borderRadius:99,height:10,overflow:"hidden"}}><div style={{width:`${m.v}%`,height:"100%",borderRadius:99,background:m.c}}/></div><span style={{fontSize:13,fontWeight:900,width:30,textAlign:"right"}}>{m.v}</span></div>))}</div></div>);
 }
 
+// ── Animal Image Component ────────────────────────────────────────────────────
+function AnimalImg({ src, emoji }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  return (
+    <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,background:"#F5F0EB",height:220,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      {(!loaded || error) && (
+        <span style={{fontSize:100,position:"absolute"}}>{emoji}</span>
+      )}
+      <img
+        src={src}
+        alt=""
+        onLoad={()=>setLoaded(true)}
+        onError={()=>setError(true)}
+        style={{width:"100%",height:220,objectFit:"cover",display:loaded&&!error?"block":"none"}}
+      />
+    </div>
+  );
+}
+
 // ── Animal Quiz Game ──────────────────────────────────────────────────────────
 // תמונות מ-Unsplash — חינמיות לחלוטין, אוניברסליות, עוררות רגש
 const ANIMALS_HE = [
-  {emoji:"🐕",name:"כלב",opts:["כלב","חתול","שועל","ארנב"]},
-  {emoji:"🐈",name:"חתול",opts:["חתול","כלב","ארנב","שועל"]},
-  {emoji:"🐘",name:"פיל",opts:["פיל","ג'ירפה","קרנף","היפופוטם"]},
-  {emoji:"🦒",name:"ג'ירפה",opts:["ג'ירפה","פיל","גמל","זברה"]},
-  {emoji:"🦁",name:"אריה",opts:["אריה","נמר","זאב","דוב"]},
-  {emoji:"🐼",name:"פנדה",opts:["פנדה","דוב","קואלה","ארנב"]},
-  {emoji:"🐇",name:"ארנב",opts:["ארנב","חתול","עכבר","שועל"]},
-  {emoji:"🦊",name:"שועל",opts:["שועל","זאב","כלב","חתול"]},
-  {emoji:"🐢",name:"צב",opts:["צב","צפרדע","נחש","לטאה"]},
-  {emoji:"🐧",name:"פינגווין",opts:["פינגווין","ברווז","יונה","עורב"]},
-  {emoji:"🐸",name:"צפרדע",opts:["צפרדע","לטאה","נחש","צב"]},
-  {emoji:"🦋",name:"פרפר",opts:["פרפר","דבורה","זבוב","יתוש"]},
-  {emoji:"🐄",name:"פרה",opts:["פרה","סוס","חמור","עז"]},
-  {emoji:"🐓",name:"תרנגול",opts:["תרנגול","ברווז","יונה","אווז"]},
+  {img:"https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?w=400",emoji:"🐕",name:"כלב",opts:["כלב","חתול","שועל","ארנב"]},
+  {img:"https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?w=400",emoji:"🐈",name:"חתול",opts:["חתול","כלב","ארנב","שועל"]},
+  {img:"https://images.pexels.com/photos/66898/elephant-cub-elephants-baby-66898.jpeg?w=400",emoji:"🐘",name:"פיל",opts:["פיל","ג'ירפה","קרנף","היפופוטם"]},
+  {img:"https://images.pexels.com/photos/1621793/pexels-photo-1621793.jpeg?w=400",emoji:"🦒",name:"ג'ירפה",opts:["ג'ירפה","פיל","גמל","זברה"]},
+  {img:"https://images.pexels.com/photos/2220336/pexels-photo-2220336.jpeg?w=400",emoji:"🦁",name:"אריה",opts:["אריה","נמר","זאב","דוב"]},
+  {img:"https://images.pexels.com/photos/3608263/pexels-photo-3608263.jpeg?w=400",emoji:"🐼",name:"פנדה",opts:["פנדה","דוב","קואלה","ארנב"]},
+  {img:"https://images.pexels.com/photos/326012/pexels-photo-326012.jpeg?w=400",emoji:"🐇",name:"ארנב",opts:["ארנב","חתול","עכבר","שועל"]},
+  {img:"https://images.pexels.com/photos/1109/ pexels-photo-1109.jpeg?w=400",emoji:"🦊",name:"שועל",opts:["שועל","זאב","כלב","חתול"]},
+  {img:"https://images.pexels.com/photos/2613148/pexels-photo-2613148.jpeg?w=400",emoji:"🐢",name:"צב",opts:["צב","צפרדע","נחש","לטאה"]},
+  {img:"https://images.pexels.com/photos/47547/squirrel-animal-cute-rodents-47547.jpeg?w=400",emoji:"🐿️",name:"סנאי",opts:["סנאי","עכבר","ארנב","חולד"]},
+  {img:"https://images.pexels.com/photos/133459/pexels-photo-133459.jpeg?w=400",emoji:"🦋",name:"פרפר",opts:["פרפר","דבורה","זבוב","יתוש"]},
+  {img:"https://images.pexels.com/photos/1350593/pexels-photo-1350593.jpeg?w=400",emoji:"🐄",name:"פרה",opts:["פרה","סוס","חמור","עז"]},
+  {img:"https://images.pexels.com/photos/635499/pexels-photo-635499.jpeg?w=400",emoji:"🐸",name:"צפרדע",opts:["צפרדע","לטאה","נחש","צב"]},
+  {img:"https://images.pexels.com/photos/158471/ibis-bird-red-animals-158471.jpeg?w=400",emoji:"🦜",name:"תוכי",opts:["תוכי","עורב","יונה","ינשוף"]},
 ];
 const ANIMALS_EN = [
-  {emoji:"🐕",name:"Dog",opts:["Dog","Cat","Fox","Rabbit"]},
-  {emoji:"🐈",name:"Cat",opts:["Cat","Dog","Rabbit","Fox"]},
-  {emoji:"🐘",name:"Elephant",opts:["Elephant","Giraffe","Rhino","Hippo"]},
-  {emoji:"🦒",name:"Giraffe",opts:["Giraffe","Elephant","Camel","Zebra"]},
-  {emoji:"🦁",name:"Lion",opts:["Lion","Tiger","Wolf","Bear"]},
-  {emoji:"🐼",name:"Panda",opts:["Panda","Bear","Koala","Rabbit"]},
-  {emoji:"🐇",name:"Rabbit",opts:["Rabbit","Cat","Mouse","Fox"]},
-  {emoji:"🦊",name:"Fox",opts:["Fox","Wolf","Dog","Cat"]},
-  {emoji:"🐢",name:"Turtle",opts:["Turtle","Frog","Snake","Lizard"]},
-  {emoji:"🐧",name:"Penguin",opts:["Penguin","Duck","Dove","Crow"]},
-  {emoji:"🐸",name:"Frog",opts:["Frog","Lizard","Snake","Turtle"]},
-  {emoji:"🦋",name:"Butterfly",opts:["Butterfly","Bee","Fly","Mosquito"]},
+  {img:"https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?w=400",emoji:"🐕",name:"Dog",opts:["Dog","Cat","Fox","Rabbit"]},
+  {img:"https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?w=400",emoji:"🐈",name:"Cat",opts:["Cat","Dog","Rabbit","Fox"]},
+  {img:"https://images.pexels.com/photos/66898/elephant-cub-elephants-baby-66898.jpeg?w=400",emoji:"🐘",name:"Elephant",opts:["Elephant","Giraffe","Rhino","Hippo"]},
+  {img:"https://images.pexels.com/photos/1621793/pexels-photo-1621793.jpeg?w=400",emoji:"🦒",name:"Giraffe",opts:["Giraffe","Elephant","Camel","Zebra"]},
+  {img:"https://images.pexels.com/photos/2220336/pexels-photo-2220336.jpeg?w=400",emoji:"🦁",name:"Lion",opts:["Lion","Tiger","Wolf","Bear"]},
+  {img:"https://images.pexels.com/photos/3608263/pexels-photo-3608263.jpeg?w=400",emoji:"🐼",name:"Panda",opts:["Panda","Bear","Koala","Rabbit"]},
+  {img:"https://images.pexels.com/photos/326012/pexels-photo-326012.jpeg?w=400",emoji:"🐇",name:"Rabbit",opts:["Rabbit","Cat","Mouse","Fox"]},
+  {img:"https://images.pexels.com/photos/2613148/pexels-photo-2613148.jpeg?w=400",emoji:"🐢",name:"Turtle",opts:["Turtle","Frog","Snake","Lizard"]},
+  {img:"https://images.pexels.com/photos/133459/pexels-photo-133459.jpeg?w=400",emoji:"🦋",name:"Butterfly",opts:["Butterfly","Bee","Fly","Dragonfly"]},
+  {img:"https://images.pexels.com/photos/1350593/pexels-photo-1350593.jpeg?w=400",emoji:"🐄",name:"Cow",opts:["Cow","Horse","Donkey","Goat"]},
 ];
 
 function AnimalGame({ t, lang, onBack }) {
@@ -1262,7 +1280,6 @@ function AnimalGame({ t, lang, onBack }) {
   const [done, setDone] = useState(false);
   const [shuffledOpts, setShuffledOpts] = useState(()=>shuffle(animals[0]?.opts||[]));
   const cur = animals[idx];
-
   useEffect(()=>{ if(cur) setShuffledOpts(shuffle([...cur.opts])); },[idx]);
 
   const handle = (opt) => {
@@ -1299,10 +1316,8 @@ function AnimalGame({ t, lang, onBack }) {
       </h2>
       <p style={{fontSize:14,color:"#8B7E74",fontWeight:700,marginBottom:14}}>{idx+1}/{animals.length}</p>
 
-      {/* אמוג'י גדול */}
-      <div style={{borderRadius:24,background:"linear-gradient(135deg,#FFF3E0,#FFE0B2)",border:"2.5px solid #FFD08A",marginBottom:18,height:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <span style={{fontSize:120,lineHeight:1}}>{cur.emoji}</span>
-      </div>
+      {/* תמונה */}
+      <AnimalImg src={cur.img} emoji={cur.emoji} />
 
       <p style={{textAlign:"center",fontSize:20,fontWeight:800,color:"#2D2A26",marginBottom:14}}>
         {isHe?"מה בעל החיים הזה?":"What animal is this?"}
@@ -1333,7 +1348,7 @@ function AnimalGame({ t, lang, onBack }) {
       <span className="big-e">🐾</span>
       <p style={{fontSize:26,fontWeight:900,marginBottom:8}}>{t.done}</p>
       <p style={{fontSize:20,color:"#8B7E74",fontWeight:700,marginBottom:24}}>⭐ {score}/{animals.length*10}</p>
-      <button className="btn btn-sun" onClick={()=>{setIdx(0);setScore(0);setDone(false);setChosen(null);setLoaded(false);}}>{t.playAgain}</button>
+      <button className="btn btn-sun" onClick={()=>{setIdx(0);setScore(0);setDone(false);setChosen(null);}}>{t.playAgain}</button>
       <button className="btn btn-ghost" onClick={onBack}>{t.menu}</button>
     </div>
   );
@@ -1350,22 +1365,12 @@ function AnimalGame({ t, lang, onBack }) {
       <p style={{fontSize:14,color:"#8B7E74",fontWeight:700,marginBottom:14}}>{idx+1}/{animals.length}</p>
 
       {/* תמונה */}
-      <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,background:"#F5F0EB",height:240,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        {loaded
-          ? <img key={cur.img} src={cur.img} alt={cur.name} style={{width:"100%",height:240,objectFit:"cover",display:"block"}} />
-          : <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-              <span style={{fontSize:80}}>{cur.emoji}</span>
-              <span style={{fontSize:13,color:"#8B7E74",fontWeight:600}}>{isHe?"טוען...":"Loading..."}</span>
-              <img key={cur.img} src={cur.img} alt="" onLoad={()=>setLoaded(true)} onError={()=>setLoaded(false)} style={{display:"none"}} />
-            </div>
-        }
-      </div>
+      <AnimalImg src={cur.img} emoji={cur.emoji} />
 
       <p style={{textAlign:"center",fontSize:20,fontWeight:800,color:"#2D2A26",marginBottom:14}}>
         {isHe?"מה בעל החיים הזה?":"What animal is this?"}
       </p>
 
-      {/* אפשרויות — מהרשימה השמורה בstate */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
         {shuffledOpts.map(opt=>{
           const isPicked=chosen===opt, isCorrect=opt===cur.name;
