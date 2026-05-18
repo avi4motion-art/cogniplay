@@ -1,4 +1,4 @@
-// CogniPlay v5.1 — gender + TTS + animals fixed
+// CogniPlay v5.2 — VERIFIED BUILD 18-05-2025
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
