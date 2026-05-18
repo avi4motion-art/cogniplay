@@ -1,4 +1,3 @@
-import React from "react";
 import { useState, useEffect } from "react";
 
 const css = `
@@ -202,26 +201,7 @@ const researchData = [
   },
 ];
 
-const testimonials = [
-  {
-    text: "אמא שלי מחייכת כשהיא משחקת. ראיתי שינוי אמיתי — היא יותר ערנית, יותר שמחה.",
-    name: "רחל כ׳",
-    role: "בת של משתמשת, נתניה",
-    stars: "⭐⭐⭐⭐⭐",
-  },
-  {
-    text: "כרופא גריאטרי אני ממליץ על CogniPlay למטופלים שלי. הדוח לרופא מדויק ושימושי.",
-    name: "ד״ר יוסי מ׳",
-    role: "רופא גריאטרי, תל אביב",
-    stars: "⭐⭐⭐⭐⭐",
-  },
-  {
-    text: "פשוט, גדול, ברור. כבן 74 גם אני מצליח! הכפתורים גדולים והמשחקים מהנים.",
-    name: "אברהם ג׳",
-    role: "משתמש, ירושלים",
-    stars: "⭐⭐⭐⭐⭐",
-  },
-];
+const testimonials = [];
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
@@ -257,14 +237,14 @@ export default function LandingPage() {
         <div>
           <div className="hero-badge">
             <span className="hero-badge-dot"></span>
-            מאובטח ♥ מאושר על ידי מחקר מדעי
+            מבוסס על מחקרים קליניים מובילים
           </div>
           <h1>
             שמור על המוח <span className="highlight">חד ושמח</span> כל יום
           </h1>
           <p>
             10 משחקים קוגניטיביים מגוונים, בעברית, בכפתורים גדולים — מיועד לגיל השלישי.
-            משפחה מחוברת, דוח לרופא, ו-CogniBot שמלווה אותך.
+            משפחה מחוברת, סיכום התקדמות, ו-CogniBot שמלווה אותך.
           </p>
           <div className="hero-btns">
             <a href="#cta" className="btn-primary">▶  התחל עכשיו — בחינם</a>
@@ -297,7 +277,7 @@ export default function LandingPage() {
       {/* STATS STRIP */}
       <div className="stats-strip">
         <div className="stats-inner">
-          {[["10,000+","משתמשים פעילים"],["10","משחקים מגוונים"],["29%","ירידה בסיכון"],["🏆","דירוג 4.9/5"]].map(([num, label]) => (
+          {[["חדש! 🚀","אפליקציה חדשה"],["10","משחקים מגוונים"],["29%*","ירידה בסיכון — מחקר ACTIVE"],["חינם","ללא כרטיס אשראי"]].map(([num, label]) => (
             <div key={label}>
               <div className="stat-num">{num}</div>
               <div className="stat-label">{label}</div>
@@ -309,13 +289,13 @@ export default function LandingPage() {
       {/* HOW IT WORKS */}
       <div id="how" className="section">
         <div className="section-tag">איך זה עובד</div>
-        <h2>3 דקות ביום — שינוי לכל החיים</h2>
+        <h2>3 דקות ביום — טוב למוח</h2>
         <p className="section-sub">לא צריך ידע טכנולוגי. רק לחיצות גדולות ופשוטות.</p>
         <div className="steps">
           {[
             { num: 1, color: "var(--sun)", icon: "👤", title: "יוצרים פרופיל", text: "מגדירים שם, שפה, ורמת קושי. לוקח 2 דקות." },
             { num: 2, color: "var(--green)", icon: "🎮", title: "משחקים כל יום", text: "אתגר יומי + משחקים חופשיים. 10 דקות מספיקות." },
-            { num: 3, color: "var(--sky)", icon: "📊", title: "מעקב ודוח", text: "המשפחה רואה התקדמות. הרופא מקבל דוח מקצועי." },
+            { num: 3, color: "var(--sky)", icon: "📊", title: "מעקב והתקדמות", text: "המשפחה רואה התקדמות ויכולה לשתף עם הרופא המטפל." },
           ].map(({ num, color, icon, title, text }) => (
             <div key={num} className="step">
               <div className="step-num" style={{ background: color }}>{num}</div>
@@ -423,26 +403,18 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* TESTIMONIALS */}
+      {/* TESTIMONIALS — יתווספו ביקורות אמיתיות בקרוב */}
       <div className="test-section">
         <div className="section-tag">מה אומרים</div>
-        <h2>משפחות ורופאים ממליצים</h2>
-        <div className="test-grid">
-          {testimonials.map(({ text, name, role, stars }) => (
-            <div key={name} className="test-card">
-              <div className="test-stars">{stars}</div>
-              <p className="test-text">״{text}״</p>
-              <div className="test-author">
-                <div className="test-avatar">
-                  {name.includes("ד״ר") ? "👨‍⚕️" : name.includes("רחל") ? "👩" : "👴"}
-                </div>
-                <div>
-                  <div className="test-name">{name}</div>
-                  <div className="test-role">{role}</div>
-                </div>
-              </div>
-            </div>
-          ))}
+        <h2>היה הראשון לשתף! 🌟</h2>
+        <p style={{color:"var(--muted)",fontSize:18,fontWeight:600,marginTop:12,marginBottom:40,textAlign:"center"}}>
+          CogniPlay חדשה ורעננה — ועדיין מחכה לביקורת הראשונה שלך.<br/>
+          נשמח לשמוע מה חשבת!
+        </p>
+        <div style={{textAlign:"center"}}>
+          <a href="mailto:hello@cogniplay.co.il?subject=הביקורת שלי על CogniPlay" className="btn-secondary" style={{display:"inline-block"}}>
+            ✉️ שלח לנו את החוויה שלך
+          </a>
         </div>
       </div>
 
@@ -464,12 +436,12 @@ export default function LandingPage() {
           <a href="/research">מחקרים</a>
           <a href="/terms">תנאי שימוש</a>
           <a href="/privacy">פרטיות</a>
-          <a href="/doctor">לרופא</a>
           <a href="/contact">צור קשר</a>
         </div>
         <div className="footer-legal">
-          CogniPlay היא אפליקציית wellness ואינה מכשיר רפואי (Medical Device). <br/>
-          אינה מאבחנת, מטפלת, או מבטיחה תוצאה רפואית כלשהי. © 2025 CogniPlay
+          CogniPlay היא אפליקציית wellness ואינה מכשיר רפואי (Medical Device). אינה מאבחנת, מטפלת, או מבטיחה תוצאה רפואית כלשהי.<br/>
+          * נתון 29% מתייחס למחקר ACTIVE (Willis et al., NEJM 2017) על אימון מהירות עיבוד — לא נבדק על CogniPlay ספציפית.<br/>
+          © 2025 CogniPlay
         </div>
       </footer>
     </>
