@@ -1,4 +1,5 @@
-import React from "react";
+import { useState } from "react";
+
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Heebo:wght@400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -97,11 +98,13 @@ const sections = [
     title: "5. תשלום ומנויים",
     content: (
       <>
-        <p>הגרסה הבסיסית של CogniPlay חינמית לחלוטין. גרסת פרמיום (אם קיימת) כוללת:</p>
+        <div className="highlight-box">
+          💚 CogniPlay חינמית לחלוטין כרגע. אם בעתיד יתווסף מנוי בתשלום, המשתמשים יקבלו הודעה מראש ויוכלו להמשיך להשתמש בגרסה החינמית.
+        </div>
         <ul>
           <li>ביטול מנוי ניתן בכל עת ללא קנס, לפחות 24 שעות לפני תחילת תקופת החיוב הבאה.</li>
           <li>החזרים ייבחנו לפי שיקול דעת CogniPlay.</li>
-          <li>מחירים עשויים להשתנות עם הודעה מראש.</li>
+          <li>מחירים עשויים להשתנות עם הודעה מראש של 30 יום.</li>
         </ul>
       </>
     ),
@@ -130,8 +133,7 @@ const sections = [
     content: (
       <>
         <p>לשאלות, בקשות מחיקת נתונים, או פנייה בנוגע לתנאים:</p>
-        <p><strong>דוא״ל:</strong> legal@cogniplay.co.il</p>
-        <p><strong>כתובת:</strong> הרצליה, ישראל</p>
+        <p><strong>דוא״ל:</strong> <a href="mailto:hello@cogniplay.co.il" style={{ color: "var(--sky)" }}>hello@cogniplay.co.il</a></p>
       </>
     ),
   },
@@ -150,7 +152,7 @@ export default function TermsPage() {
 
       <div className="hero">
         <h1>תנאי שימוש</h1>
-        <p>עודכן לאחרונה: מאי 2025 | בתוקף מ-1 ביוני 2025</p>
+        <p>עודכן לאחרונה: מאי 2026 | בתוקף מ-18 במאי 2026</p>
       </div>
 
       <div className="main">
