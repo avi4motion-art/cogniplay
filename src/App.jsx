@@ -1,4 +1,4 @@
-// CogniPlay v5.8 — animal fix final + greeting delay + herzl removed
+// CogniPlay v5.9 — emoji only animals, no images
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -1235,33 +1235,9 @@ function FamilyDash({ t, lang, onBack }) {
 
 // ── Animal Image Component ────────────────────────────────────────────────────
 function AnimalImg({ src, emoji }) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
-  
-  // איפוס כשמשתנה החיה
-  useEffect(() => {
-    setLoaded(false);
-    setError(false);
-  }, [src]);
-  
-  const showEmoji = !loaded || error;
   return (
-    <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,height:220,background:"linear-gradient(135deg,#FFF3E0,#FFE0B2)"}}>
-      {showEmoji && (
-        <div style={{height:220,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <span style={{fontSize:110}}>{emoji}</span>
-        </div>
-      )}
-      {!error && (
-        <img
-          key={src}
-          src={src}
-          alt=""
-          onLoad={()=>{setLoaded(true);setError(false);}}
-          onError={()=>setError(true)}
-          style={{width:"100%",height:220,objectFit:"cover",display:loaded&&!error?"block":"none"}}
-        />
-      )}
+    <div style={{borderRadius:24,marginBottom:18,height:220,background:"linear-gradient(135deg,#FFF3E0,#FFE0B2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <span style={{fontSize:130,lineHeight:1,userSelect:"none"}}>{emoji}</span>
     </div>
   );
 }
