@@ -1,4 +1,4 @@
-// CogniPlay v5.7 — 45 verified songs
+// CogniPlay v5.8 — animal fix final + greeting delay + herzl removed
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -418,7 +418,7 @@ he:[
   {type:"clues",clues:["נקרא 'הזמר הישראלי הגדול'","שר 'הו לה לה' ו'צייד'","נפטר ב-2013"],a:"אריק אינשטיין",o:["אריק אינשטיין","שלמה ארצי","יהורם גאון","מאיר אריאל"],e:"🎸"},
   {type:"clues",clues:["מדינאי עם כיפה שחורה על עין","שר ביטחון במלחמת ששת הימים","נולד בקיבוץ דגניה"],a:"משה דיין",o:["משה דיין","יגאל אלון","אריאל שרון","עזר וייצמן"],e:"🎖️"},
   {type:"clues",clues:["שחקנית ישראלית מפורסמת","כיכבה בסרטים קלאסיים ישראליים","שמה מזכיר עיר ועץ"],a:"גילה אלמגור",o:["גילה אלמגור","חנה מרון","דליה פרידלנד","נורית גלרון"],e:"🌹"},
-  {type:"clues",clues:["כתב שירים ישראליים קלאסיים","כתב 'אם תרצו'","ייסד את הציונות המדינית"],a:"תיאודור הרצל",o:["תיאודור הרצל","חיים וייצמן","זאב ז'בוטינסקי","אחד העם"],e:"⭐"},
+  {type:"clues",clues:["ראש ממשלה ישראלי","זכה בפרס נובל לשלום","חתם על הסכם אוסלו"],a:"יצחק רבין",o:["יצחק רבין","שמעון פרס","אהוד ברק","יצחק שמיר"],e:"🕊️"},
 ],
 en:[
   {type:"q",q:"Who was the first US President?",a:"George Washington",o:["George Washington","John Adams","Thomas Jefferson","Benjamin Franklin"],e:"🇺🇸"},
@@ -691,9 +691,10 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
       </div>
       <button className="btn btn-sun" style={{fontSize:20,padding:"18px"}} onClick={()=>{
         playStart();
-        setStarted(true);
-        setTimeout(()=>showToast(name?(isHe?`בהצלחה ${name}! 🚀`:`Good luck ${name}! 🚀`):(isHe?"בהצלחה! 🚀":"Good luck! 🚀"), "#FF9F43"), 900);
         speakDailyStart(lang, name, gender);
+        showToast(name?(isHe?`בהצלחה ${name}! 🚀`:`Good luck ${name}! 🚀`):(isHe?"בהצלחה! 🚀":"Good luck! 🚀"), "#FF9F43");
+        // המתן 3 שניות לפני שמתחילות השאלות
+        setTimeout(()=>setStarted(true), 3000);
       }}>
         {isHe?"בואו נתחיל! 🚀":"Let's Go! 🚀"}
       </button>
@@ -1236,23 +1237,31 @@ function FamilyDash({ t, lang, onBack }) {
 function AnimalImg({ src, emoji }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  
+  // איפוס כשמשתנה החיה
+  useEffect(() => {
+    setLoaded(false);
+    setError(false);
+  }, [src]);
+  
   const showEmoji = !loaded || error;
   return (
     <div style={{borderRadius:24,overflow:"hidden",marginBottom:18,height:220,background:"linear-gradient(135deg,#FFF3E0,#FFE0B2)"}}>
-      {showEmoji
-        ? <div style={{height:220,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{fontSize:110}}>{emoji}</span>
-          </div>
-        : null
-      }
-      <img
-        key={src}
-        src={src}
-        alt=""
-        onLoad={()=>{setLoaded(true);setError(false);}}
-        onError={()=>setError(true)}
-        style={{width:"100%",height:220,objectFit:"cover",display:showEmoji?"none":"block"}}
-      />
+      {showEmoji && (
+        <div style={{height:220,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <span style={{fontSize:110}}>{emoji}</span>
+        </div>
+      )}
+      {!error && (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          onLoad={()=>{setLoaded(true);setError(false);}}
+          onError={()=>setError(true)}
+          style={{width:"100%",height:220,objectFit:"cover",display:loaded&&!error?"block":"none"}}
+        />
+      )}
     </div>
   );
 }
