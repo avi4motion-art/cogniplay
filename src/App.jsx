@@ -1,4 +1,4 @@
-// CogniPlay v5.3 — images + gender + TTS
+// CogniPlay v5.4 — clean build
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -1334,54 +1334,6 @@ function AnimalGame({ t, lang, onBack }) {
             <button key={opt} onClick={()=>handle(opt)} style={{
               background:bg,border:`2.5px solid ${border}`,borderRadius:16,
               padding:"18px 10px",fontSize:18,fontWeight:800,cursor:"pointer",
-              fontFamily:"Nunito,sans-serif",color,transition:"all .2s",
-            }}>{opt}</button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-  if(done) return(
-    <div className="screen" style={{direction:T[lang].dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-      <span className="big-e">🐾</span>
-      <p style={{fontSize:26,fontWeight:900,marginBottom:8}}>{t.done}</p>
-      <p style={{fontSize:20,color:"#8B7E74",fontWeight:700,marginBottom:24}}>⭐ {score}/{animals.length*10}</p>
-      <button className="btn btn-sun" onClick={()=>{setIdx(0);setScore(0);setDone(false);setChosen(null);}}>{t.playAgain}</button>
-      <button className="btn btn-ghost" onClick={onBack}>{t.menu}</button>
-    </div>
-  );
-
-  return(
-    <div className="screen" style={{direction:T[lang].dir}}>
-      <div className="topbar">
-        <button className="back-btn" onClick={onBack}>{t.back}</button>
-        <div className="score-pill">⭐ {score}</div>
-      </div>
-      <h2 style={{fontFamily:"Fredoka,sans-serif",fontSize:24,marginBottom:4}}>
-        🐾 {isHe?"זהה את בעל החיים":"Identify the Animal"}
-      </h2>
-      <p style={{fontSize:14,color:"#8B7E74",fontWeight:700,marginBottom:14}}>{idx+1}/{animals.length}</p>
-
-      {/* תמונה */}
-      <AnimalImg src={cur.img} emoji={cur.emoji} />
-
-      <p style={{textAlign:"center",fontSize:20,fontWeight:800,color:"#2D2A26",marginBottom:14}}>
-        {isHe?"מה בעל החיים הזה?":"What animal is this?"}
-      </p>
-
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-        {shuffledOpts.map(opt=>{
-          const isPicked=chosen===opt, isCorrect=opt===cur.name;
-          let bg="white",border="#E8E0D8",color="#2D2A26";
-          if(isPicked&&isCorrect){bg="#EDFFF8";border="#1DD1A1";}
-          else if(isPicked&&!isCorrect){bg="#FFF0F0";border="#FF6B6B";}
-          else if(chosen&&isCorrect){bg="#EDFFF8";border="#1DD1A1";}
-          return(
-            <button key={opt} onClick={()=>handle(opt)} style={{
-              background:bg,border:`2.5px solid ${border}`,borderRadius:16,
-              padding:"18px 10px",fontSize:17,fontWeight:800,cursor:"pointer",
               fontFamily:"Nunito,sans-serif",color,transition:"all .2s",
             }}>{opt}</button>
           );
