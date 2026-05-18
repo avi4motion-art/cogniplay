@@ -1,4 +1,4 @@
-// CogniPlay v6.1 — expanded all data: 40 animals, 40 trivia, 30 numbers, 50 rooms
+// CogniPlay v6.5 — fixed bad trivia questions
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -38,17 +38,22 @@ const _tts = (text, lang="he") => {
       try {
         const u = new SpeechSynthesisUtterance(text);
         u.lang = lang === "he" ? "he-IL" : "en-US";
-        u.rate = 0.85;
+        u.rate = 0.78;
         u.pitch = 1.0;
         u.volume = 1.0;
         const voices = window.speechSynthesis.getVoices();
+        // עדיפות: קול ישראלי, אחר כך כל קול עברי
         const best = lang==="he"
-          ? (voices.find(v=>v.lang==="he-IL") || voices.find(v=>v.lang.startsWith("he")))
-          : (voices.find(v=>v.lang==="en-US") || voices.find(v=>v.lang.startsWith("en")));
+          ? (voices.find(v=>v.lang==="he-IL" && v.name.includes("Carmit")) ||
+             voices.find(v=>v.lang==="he-IL") ||
+             voices.find(v=>v.lang.startsWith("he")))
+          : (voices.find(v=>v.lang==="en-US" && v.name.includes("Samantha")) ||
+             voices.find(v=>v.lang==="en-US") ||
+             voices.find(v=>v.lang.startsWith("en")));
         if (best) u.voice = best;
         window.speechSynthesis.speak(u);
       } catch(e) {}
-    }, 600);
+    }, 500);
   } catch(e) {}
 };
 
@@ -405,9 +410,9 @@ he:[
   {type:"q",q:"מי הייתה ראשת הממשלה הראשונה של ישראל?",a:"גולדה מאיר",o:["גולדה מאיר","שולמית אלוני","לאה רבין","מרים בן פורת"],e:"👩‍💼"},
   {type:"q",q:"כמה ימים נמשכה מלחמת ששת הימים?",a:"6",o:["6","7","12","3"],e:"🎖️"},
   {type:"q",q:"מהי עיר הבירה של ישראל?",a:"ירושלים",o:["ירושלים","תל אביב","חיפה","באר שבע"],e:"🕍"},
-  {type:"q",q:"מי שר שיר לשלום לפני הירצחו?",a:"יצחק רבין",o:["יצחק רבין","שמעון פרס","מנחם בגין","אהוד ברק"],e:"🕊️"},
+  {type:"q",q:"מי נרצח בכיכר מלכי ישראל בנובמבר 1995?",a:"יצחק רבין",o:["יצחק רבין","אריאל שרון","משה דיין","יגאל אלון"],e:"🕊️"},
   {type:"q",q:"באיזה ים שוחים בקלות כי המים מלוחים?",a:"ים המלח",o:["ים המלח","הכינרת","ים סוף","הים התיכון"],e:"🏊"},
-  {type:"q",q:"מי חתם על הסכם השלום עם מצרים?",a:"מנחם בגין",o:["מנחם בגין","יצחק שמיר","אריאל שרון","יצחק רבין"],e:"✌️"},
+  {type:"q",q:"מי חתם על הסכם השלום עם מצרים וזכה בפרס נובל?",a:"מנחם בגין",o:["מנחם בגין","דוד בן גוריון","גולדה מאיר","לוי אשכול"],e:"✌️"},
   {type:"q",q:"איזה פרי הוא סמל ראש השנה?",a:"תפוח בדבש",o:["תפוח בדבש","רימון","תמר","ענבים"],e:"🍎"},
   {type:"q",q:"מה שמו של ההמנון הלאומי של ישראל?",a:"התקווה",o:["התקווה","שיר השירים","דגל הארץ","עם ישראל חי"],e:"🎵"},
   {type:"q",q:"כמה שבטים היו לישראל?",a:"12",o:["12","10","13","7"],e:"📜"},
@@ -422,23 +427,23 @@ he:[
   {type:"q",q:"מה גובה הר חרמון בערך?",a:"2800 מטר",o:["2800 מטר","1200 מטר","3500 מטר","500 מטר"],e:"⛰️"},
   {type:"q",q:"איזה עיר היא הגדולה ביותר בישראל?",a:"ירושלים",o:["ירושלים","תל אביב","חיפה","ראשון לציון"],e:"🏙️"},
   {type:"q",q:"כמה שנים ביובל?",a:"50",o:["50","40","25","100"],e:"📅"},
-  {type:"q",q:"מה שם הכינרת בעברית עתיקה?",a:"ים כנרת",o:["ים כנרת","ים גנוסר","ים טבריה","ים גלילי"],e:"💧"},
+  {type:"q",q:"מה הכינרת? מה היא?",a:"אגם מים מתוקים",o:["אגם מים מתוקים","ים מלוח","נהר","בריכה מלאכותית"],e:"💧"},
   {type:"q",q:"מי כתב את ההגדה של פסח?",a:"חכמים שונים לדורותיהם",o:["חכמים שונים לדורותיהם","משה רבנו","דוד המלך","עזרא הסופר"],e:"📜"},
   {type:"q",q:"כמה שנות גלות היו בבבל?",a:"70",o:["70","40","100","50"],e:"📜"},
   {type:"q",q:"מי היה הנביא שהוציא את ישראל ממצרים?",a:"משה",o:["משה","אהרון","יהושע","כלב"],e:"🌊"},
   {type:"q",q:"באיזה חג אוכלים מאכלי חלב?",a:"שבועות",o:["שבועות","פסח","חנוכה","פורים"],e:"🧀"},
   {type:"q",q:"כמה מגילות יש בתנ"ך?",a:"24",o:["24","39","22","27"],e:"📖"},
-  {type:"q",q:"מה שם הנשיא הראשון של ישראל?",a:"חיים וייצמן",o:["חיים וייצמן","דוד בן גוריון","יצחק בן צבי","זלמן שזר"],e:"🇮🇱"},
-  {type:"clues",clues:["שיחק בסרט 'כנר על הגג' בעולם","שחקן ישראלי עם פרסים בינלאומיים","שמו חיים"],a:"חיים טופול",o:["חיים טופול","שייקה אופיר","אבי גרייניק","ישראל פוליאקוב"],e:"🎭"},
-  {type:"clues",clues:["נקרא 'הזמר הישראלי הגדול'","שר 'הו לה לה' ו'צייד'","נפטר ב-2013"],a:"אריק אינשטיין",o:["אריק אינשטיין","שלמה ארצי","יהורם גאון","מאיר אריאל"],e:"🎸"},
-  {type:"clues",clues:["מדינאי עם כיפה שחורה על עין","שר ביטחון במלחמת ששת הימים","נולד בקיבוץ דגניה"],a:"משה דיין",o:["משה דיין","יגאל אלון","אריאל שרון","עזר וייצמן"],e:"🎖️"},
-  {type:"clues",clues:["שחקנית ישראלית מפורסמת","כיכבה בסרטים קלאסיים ישראליים","שמה מזכיר עיר ועץ"],a:"גילה אלמגור",o:["גילה אלמגור","חנה מרון","דליה פרידלנד","נורית גלרון"],e:"🌹"},
-  {type:"clues",clues:["ראש ממשלה ישראלי","זכה בפרס נובל לשלום","נרצח ב-1995"],a:"יצחק רבין",o:["יצחק רבין","שמעון פרס","אהוד ברק","יצחק שמיר"],e:"🕊️"},
-  {type:"clues",clues:["זמרת ישראלית אגדית","שרה 'אני חי'","נפטרה צעירה"],a:"אופירה חזה",o:["אופירה חזה","יפה ירקוני","שושנה דמארי","נורית גלרון"],e:"🎤"},
-  {type:"clues",clues:["שחקן כדורגל ישראלי","שיחק בצרפת ובספרד","כינויו 'הנמר'"],a:"ערן זהבי",o:["ערן זהבי","יוסי בניון","אבי נמני","רוני רוזנטל"],e:"⚽"},
-  {type:"clues",clues:["סופר ישראלי זוכה פרס","כתב 'מר מאני'","ספריו תורגמו לעשרות שפות"],a:"א.ב. יהושע",o:["א.ב. יהושע","עמוס עוז","דוד גרוסמן","משה שמיר"],e:"📚"},
-  {type:"clues",clues:["עיר בצפון ישראל","נמצאת על הכרמל","נמל הגדול בישראל"],a:"חיפה",o:["חיפה","עכו","נהריה","טבריה"],e:"🚢"},
-  {type:"clues",clues:["חג יהודי","אוכלים אוזני המן","מחפשים משלוח מנות"],a:"פורים",o:["פורים","חנוכה","פסח","שבועות"],e:"🎭"},
+  {type:"q",q:"מה שם הנשיא הראשון של מדינת ישראל?",a:"חיים וייצמן",o:["חיים וייצמן","דוד בן גוריון","אלברט אינשטיין","חיים ברלב"],e:"🇮🇱"},
+  {type:"clues",clues:["שיחק את טוביה החולב בכנר על הגג","ישראלי שזכה בגלובוס הזהב","נולד בבולגריה ועלה לישראל"],a:"חיים טופול",o:["חיים טופול","שייקה אופיר","יוסי בנאי","ישראל פוליאקוב"],e:"🎭"},
+  {type:"clues",clues:["שר הו לה לה וצייד","הלחין ושר עם שייקה לוי","נחשב לסמל הרוק הישראלי"],a:"אריק אינשטיין",o:["אריק אינשטיין","שלמה ארצי","יהורם גאון","מאיר אריאל"],e:"🎸"},
+  {type:"clues",clues:["ענד כיפה שחורה על עינו השמאלית","הפך לסמל ניצחון 67","בנו שלמה היה גם הוא קצין בכיר"],a:"משה דיין",o:["משה דיין","יגאל אלון","אריאל שרון","עזר וייצמן"],e:"🎖️"},
+  {type:"clues",clues:["זכתה בפרס ישראל לאמנות הבמה","כיכבה ב׳הקיץ של אביה׳","שמה כמו עיר ועץ גדול"],a:"גילה אלמגור",o:["גילה אלמגור","חנה מרון","דליה פרידלנד","נורית גלרון"],e:"🌹"},
+  {type:"clues",clues:["נרצח בכיכר מלכי ישראל ב-1995","חתם על הסכמי אוסלו","היה גם רמטכל וגם שר ביטחון"],a:"יצחק רבין",o:["יצחק רבין","שמעון פרס","אהוד ברק","יצחק שמיר"],e:"🕊️"},
+  {type:"clues",clues:["שרה בערבית ובעברית","נפטרה בגיל 42 מסרטן","שירה 'אנא אנא' ו'יא מסאפר'"],a:"אופירה חזה",o:["אופירה חזה","יפה ירקוני","שושנה דמארי","נורית גלרון"],e:"🎤"},
+  {type:"clues",clues:["חיפה נמצאת על שיפועיו","הנמל הגדול בישראל נמצא שם","הכרמל — ומה שמה של העיר?"],a:"חיפה",o:["חיפה","עכו","נהריה","טבריה"],e:"🚢"},
+  {type:"clues",clues:["חוגגים אותו באדר","מסתכמים ומחפשים את המן","שולחים משלוח מנות לחברים"],a:"פורים",o:["פורים","חנוכה","פסח","שבועות"],e:"🎭"},
+  {type:"clues",clues:["כתב את 'אל המקום שבו'","זכה בפרס נובל לספרות ב-1966","נולד בפולין ועלה לישראל"],a:"שמואל יוסף עגנון",o:["שמואל יוסף עגנון","עמוס עוז","א.ב. יהושע","יצחק שנהר"],e:"📚"},
+  {type:"clues",clues:["שיחק ב׳לול׳ ו׳כפר נחום׳","שותפו הקבוע היה יוסי בנאי","כינויו ׳ג׳ינג׳י׳"],a:"שייקה לוי",o:["שייקה לוי","שייקה אופיר","יוסי בנאי","גבי עמרני"],e:"🎭"},
 ],en:[
   {type:"q",q:"Who was the first US President?",a:"George Washington",o:["George Washington","John Adams","Thomas Jefferson","Benjamin Franklin"],e:"🇺🇸"},
   {type:"q",q:"In which year did World War II end?",a:"1945",o:["1945","1944","1946","1943"],e:"🎖️"},
@@ -845,7 +850,7 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
     if(step.game==="language") return(
       <div>
         <div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><p style={{fontSize:21,fontWeight:900,lineHeight:1.5}}>{item.p}</p></div>
-        {shuffle(item.o).map(o=>optBtn(o,item.a))}
+        {item.o.map(o=>optBtn(o,item.a))}
       </div>
     );
     if(step.game==="music") return(
@@ -855,7 +860,7 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
           <p style={{fontSize:12,color:"#8B7E74",fontWeight:700,margin:"4px 0 8px"}}>🎵 {item.t}</p>
           <p style={{fontSize:20,fontWeight:900,lineHeight:1.5}}>{item.l}</p>
         </div>
-        {shuffle(item.o).map(o=>optBtn(o,item.a))}
+        {item.o.map(o=>optBtn(o,item.a))}
       </div>
     );
     if(step.game==="trivia"){
@@ -872,7 +877,7 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
               <button onClick={()=>setClueLevel(l=>l+1)} style={{background:"none",border:"2px solid #FF9F43",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:800,cursor:"pointer",marginTop:8,color:"#F08000",fontFamily:"Nunito,sans-serif"}}>+ {t.clueBtn}</button>
             )}
           </div>
-          {shuffle(item.o).map(o=>optBtn(o,item.a))}
+          {item.o.map(o=>optBtn(o,item.a))}
         </div>
       );
     }
@@ -910,20 +915,17 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
       );
     }
     if(step.game==="animal"){
-      const [imgLoaded, setImgLoaded] = [false, ()=>{}]; // simple fallback
+      const animalOpts = item.opts ? [...item.opts] : [];
       return(
         <div>
-          <div style={{borderRadius:20,overflow:"hidden",marginBottom:14,height:200,background:"#F5F0EB",display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
-            <span style={{fontSize:70,position:"absolute"}}>{item.emoji}</span>
-            <img src={item.img} alt="animal" style={{width:"100%",height:200,objectFit:"cover",borderRadius:20}}
-              onError={e=>{e.target.style.display="none";}}
-            />
+          <div style={{borderRadius:24,marginBottom:14,height:180,background:"linear-gradient(135deg,#FFF3E0,#FFE0B2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <span style={{fontSize:110,lineHeight:1}}>{item.emoji}</span>
           </div>
-          <p style={{textAlign:"center",fontSize:20,fontWeight:800,marginBottom:14}}>
+          <p style={{textAlign:"center",fontSize:18,fontWeight:800,marginBottom:12}}>
             {isHe?"מה בעל החיים הזה?":"What animal is this?"}
           </p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {shuffle(item.opts).map(opt=>optBtn(opt,item.name))}
+            {animalOpts.map(opt=>optBtn(opt,item.name))}
           </div>
         </div>
       );
@@ -986,7 +988,7 @@ function LanguageGame({ t, lang, onBack }) {
   const cur=pool[idx];
   const handle=(opt)=>{if(chosen)return;playClick();setChosen(opt);if(opt===cur.a){setScore(s=>s+10);sayCorrect(lang);}else sayWrong(lang);setTimeout(()=>{if(idx+1<pool.length){setIdx(i=>i+1);setChosen(null);}else{setDone(true);sayDone(lang);}},1200);};
   if(done)return(<div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🎊</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {score}/{pool.length*10}</p><button className="btn btn-green" onClick={()=>{setPool(shuffle(all).slice(0,6));setIdx(0);setScore(0);setDone(false);setChosen(null);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={onBack}>{t.menu}</button></div>);
-  return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><div className="score-pill">⭐ {score}</div></div><h2 className="st">💬 {t.language}</h2><p className="pl">{idx+1}/{pool.length}</p><div className="card card-green" style={{textAlign:"center",marginBottom:14}}><p style={{fontSize:24,fontWeight:900,lineHeight:1.5}}>{cur.p}</p></div>{shuffle(cur.o).map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(chosen===opt)cls+=opt===cur.a?" opt-correct":" opt-wrong";else if(chosen&&opt===cur.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handle(opt)}>{opt}</button>;})}</div>);
+  return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><div className="score-pill">⭐ {score}</div></div><h2 className="st">💬 {t.language}</h2><p className="pl">{idx+1}/{pool.length}</p><div className="card card-green" style={{textAlign:"center",marginBottom:14}}><p style={{fontSize:24,fontWeight:900,lineHeight:1.5}}>{cur.p}</p></div>{cur.o.map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(chosen===opt)cls+=opt===cur.a?" opt-correct":" opt-wrong";else if(chosen&&opt===cur.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handle(opt)}>{opt}</button>;})}</div>);
 }
 
 // ── Music Game ────────────────────────────────────────────────────────────────
@@ -1006,7 +1008,7 @@ function MusicGame({ t, lang, onBack }) {
   const curR=RHYTHMS[rRound%RHYTHMS.length];
   const circCls=`rhythm-circle ${rBeat?"rh-play":rPhase==="input"?"rh-input":rPhase==="result"?`rh-${rResult||"idle"}`:"rh-idle"}`;
   if(mode==="menu")return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button></div><h2 className="st">🎵 {t.music}</h2><div className="card card-sun" style={{textAlign:"center",cursor:"pointer",marginBottom:14}} onClick={()=>setMode("songs")}><span style={{fontSize:44,display:"block",marginBottom:8}}>🎤</span><p style={{fontSize:18,fontWeight:800}}>{lang==="he"?"השלם את השיר":"Complete the song"}</p></div><div className="card card-green" style={{textAlign:"center",cursor:"pointer"}} onClick={()=>setMode("rhythm")}><span style={{fontSize:44,display:"block",marginBottom:8}}>🥁</span><p style={{fontSize:18,fontWeight:800}}>{lang==="he"?"חיקוי קצב":"Rhythm Echo"}</p></div></div>);
-  if(mode==="songs"){if(sDone)return(<div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🎤</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {sScore}/{SONGS_N*10}</p><button className="btn btn-sun" onClick={()=>{setSongPool(shuffle(allSongs));setSongIdx(0);setSScore(0);setSChosen(null);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={()=>setMode("menu")}>{t.back}</button></div>);return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={()=>setMode("menu")}>{t.back}</button><div className="score-pill">⭐ {sScore}</div></div><h2 className="st">🎤 {lang==="he"?"השלם את השיר":"Complete the song"}</h2><p className="pl">{songIdx+1}/{SONGS_N}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><span style={{fontSize:44}}>{cur.e}</span><p style={{fontSize:12,color:"#8B7E74",fontWeight:700,margin:"4px 0 8px"}}>🎵 {cur.t}</p><p style={{fontSize:21,fontWeight:900,lineHeight:1.5}}>{cur.l}</p></div>{shuffle(cur.o).map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(sChosen===opt)cls+=opt===cur.a?" opt-correct":" opt-wrong";else if(sChosen&&opt===cur.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handleSong(opt)}>{opt}</button>;})}</div>);}
+  if(mode==="songs"){if(sDone)return(<div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🎤</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {sScore}/{SONGS_N*10}</p><button className="btn btn-sun" onClick={()=>{setSongPool(shuffle(allSongs));setSongIdx(0);setSScore(0);setSChosen(null);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={()=>setMode("menu")}>{t.back}</button></div>);return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={()=>setMode("menu")}>{t.back}</button><div className="score-pill">⭐ {sScore}</div></div><h2 className="st">🎤 {lang==="he"?"השלם את השיר":"Complete the song"}</h2><p className="pl">{songIdx+1}/{SONGS_N}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><span style={{fontSize:44}}>{cur.e}</span><p style={{fontSize:12,color:"#8B7E74",fontWeight:700,margin:"4px 0 8px"}}>🎵 {cur.t}</p><p style={{fontSize:21,fontWeight:900,lineHeight:1.5}}>{cur.l}</p></div>{cur.o.map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(sChosen===opt)cls+=opt===cur.a?" opt-correct":" opt-wrong";else if(sChosen&&opt===cur.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handleSong(opt)}>{opt}</button>;})}</div>);}
   if(rDone)return(<div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🥁</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {rScore}/{RHYTHM_MAX*10}</p><button className="btn btn-sun" onClick={()=>{setRRound(0);setRScore(0);setRDone(false);setRPhase("idle");setRResult(null);setRTaps(0);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={()=>setMode("menu")}>{t.back}</button></div>);
   return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={()=>setMode("menu")}>{t.back}</button><div className="score-pill">⭐ {rScore}</div></div><h2 className="st">🥁 {lang==="he"?"חיקוי קצב":"Rhythm Echo"}</h2><p className="pl">{rRound+1}/{RHYTHM_MAX}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><p style={{fontSize:22,letterSpacing:4,fontWeight:800}}>{curR.l}</p><p style={{fontSize:13,color:"#8B7E74",fontWeight:600,marginTop:6}}>{rPhase==="idle"?(lang==="he"?"הקצב שתשמע":"Pattern to hear"):rPhase==="playing"?(lang==="he"?"מקשיב...":"Listen..."):rPhase==="input"?`${lang==="he"?"הקש!":"Tap!"} ${rTaps}/${curR.p.length}`:rResult==="good"?"🎯 "+(lang==="he"?"מצוין!":"Excellent!"):rResult==="ok"?"👍 "+(lang==="he"?"כמעט!":"Almost!"):"💪 "+(lang==="he"?"נסה שוב":"Try again")}</p></div><div style={{textAlign:"center",margin:"16px 0"}}><div className={circCls} onClick={handleTap}>{rPhase==="idle"?"🥁":rPhase==="playing"?(rBeat?"💥":"🎵"):rPhase==="input"?"👆":rResult==="good"?"🎉":rResult==="ok"?"👍":"🔄"}</div></div>{rPhase==="idle"&&<button className="btn btn-sun" onClick={()=>{getCtx();playRhythm();}}>{lang==="he"?"▶ הפעל קצב":"▶ Play Rhythm"}</button>}</div>);
 }
@@ -1038,7 +1040,7 @@ function TriviaGame({ t, lang, onBack }) {
   const card=cards[idx];const pts=card?.type==="clues"?[10,7,4][clue]:10;
   const handle=(opt)=>{if(chosen)return;playClick();setChosen(opt);if(opt===card.a){setScore(s=>s+pts);sayCorrect(lang);}else sayWrong(lang);setTimeout(()=>{if(idx+1>=cards.length){setDone(true);sayDone(lang);}else{setIdx(i=>i+1);}},1600);};
   if(done)return(<div className="screen" style={{direction:T[lang].dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🏆</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {score}</p><button className="btn btn-sun" onClick={()=>{setCards(shuffle(all).slice(0,6));setIdx(0);setScore(0);setDone(false);setChosen(null);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={onBack}>{t.menu}</button></div>);
-  return(<div className="screen" style={{direction:T[lang].dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><div className="score-pill">⭐ {score}</div></div><h2 className="st">🏆 {t.trivia}</h2><p className="pl">{idx+1}/{cards.length}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><span style={{fontSize:44}}>{card.e}</span>{card.type==="q"&&<p style={{fontSize:19,fontWeight:900,marginTop:8,lineHeight:1.4}}>{card.q}</p>}{card.type==="clues"&&(<><p style={{fontSize:12,fontWeight:800,color:"#A29BFE",marginTop:8,marginBottom:8}}>{t.clueBtn} <span style={{color:"#FF9F43"}}>({pts} pts)</span></p>{card.clues.slice(0,clue+1).map((c,i)=>(<div key={i} className={`clue-box${i===clue?" clue-new":""}`}>{i+1}. {c}</div>))}{clue<2&&!chosen&&(<button onClick={()=>setClue(l=>l+1)} style={{background:"none",border:"2px solid #FF9F43",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:800,cursor:"pointer",marginTop:8,color:"#F08000",fontFamily:"Nunito,sans-serif"}}>+ {t.clueBtn}</button>)}</>)}</div>{shuffle(card.o).map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(chosen===opt)cls+=opt===card.a?" opt-correct":" opt-wrong";else if(chosen&&opt===card.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handle(opt)}>{opt}</button>;})}{chosen&&<div style={{borderRadius:14,padding:14,textAlign:"center",fontSize:18,fontWeight:800,marginTop:10,background:chosen===card.a?"#EDFFF8":"#FFF0F0",color:chosen===card.a?"#0A6B4F":"#9B2626"}}>{chosen===card.a?`✓ ${t.correct} (+${pts})`:`${t.almost} — ${card.a}`}</div>}</div>);
+  return(<div className="screen" style={{direction:T[lang].dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><div className="score-pill">⭐ {score}</div></div><h2 className="st">🏆 {t.trivia}</h2><p className="pl">{idx+1}/{cards.length}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><span style={{fontSize:44}}>{card.e}</span>{card.type==="q"&&<p style={{fontSize:19,fontWeight:900,marginTop:8,lineHeight:1.4}}>{card.q}</p>}{card.type==="clues"&&(<><p style={{fontSize:12,fontWeight:800,color:"#A29BFE",marginTop:8,marginBottom:8}}>{t.clueBtn} <span style={{color:"#FF9F43"}}>({pts} pts)</span></p>{card.clues.slice(0,clue+1).map((c,i)=>(<div key={i} className={`clue-box${i===clue?" clue-new":""}`}>{i+1}. {c}</div>))}{clue<2&&!chosen&&(<button onClick={()=>setClue(l=>l+1)} style={{background:"none",border:"2px solid #FF9F43",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:800,cursor:"pointer",marginTop:8,color:"#F08000",fontFamily:"Nunito,sans-serif"}}>+ {t.clueBtn}</button>)}</>)}</div>{card.o.map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(chosen===opt)cls+=opt===card.a?" opt-correct":" opt-wrong";else if(chosen&&opt===card.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handle(opt)}>{opt}</button>;})}{chosen&&<div style={{borderRadius:14,padding:14,textAlign:"center",fontSize:18,fontWeight:800,marginTop:10,background:chosen===card.a?"#EDFFF8":"#FFF0F0",color:chosen===card.a?"#0A6B4F":"#9B2626"}}>{chosen===card.a?`✓ ${t.correct} (+${pts})`:`${t.almost} — ${card.a}`}</div>}</div>);
 }
 
 // ── Together ──────────────────────────────────────────────────────────────────
@@ -1550,17 +1552,22 @@ const _tts = (text, lang="he") => {
       try {
         const u = new SpeechSynthesisUtterance(text);
         u.lang = lang === "he" ? "he-IL" : "en-US";
-        u.rate = 0.85;
+        u.rate = 0.78;
         u.pitch = 1.0;
         u.volume = 1.0;
         const voices = window.speechSynthesis.getVoices();
+        // עדיפות: קול ישראלי, אחר כך כל קול עברי
         const best = lang==="he"
-          ? (voices.find(v=>v.lang==="he-IL") || voices.find(v=>v.lang.startsWith("he")))
-          : (voices.find(v=>v.lang==="en-US") || voices.find(v=>v.lang.startsWith("en")));
+          ? (voices.find(v=>v.lang==="he-IL" && v.name.includes("Carmit")) ||
+             voices.find(v=>v.lang==="he-IL") ||
+             voices.find(v=>v.lang.startsWith("he")))
+          : (voices.find(v=>v.lang==="en-US" && v.name.includes("Samantha")) ||
+             voices.find(v=>v.lang==="en-US") ||
+             voices.find(v=>v.lang.startsWith("en")));
         if (best) u.voice = best;
         window.speechSynthesis.speak(u);
       } catch(e) {}
-    }, 600);
+    }, 500);
   } catch(e) {}
 };
 
@@ -2230,7 +2237,7 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
     if(step.game==="language") return(
       <div>
         <div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><p style={{fontSize:21,fontWeight:900,lineHeight:1.5}}>{item.p}</p></div>
-        {shuffle(item.o).map(o=>optBtn(o,item.a))}
+        {item.o.map(o=>optBtn(o,item.a))}
       </div>
     );
     if(step.game==="music") return(
@@ -2240,7 +2247,7 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
           <p style={{fontSize:12,color:"#8B7E74",fontWeight:700,margin:"4px 0 8px"}}>🎵 {item.t}</p>
           <p style={{fontSize:20,fontWeight:900,lineHeight:1.5}}>{item.l}</p>
         </div>
-        {shuffle(item.o).map(o=>optBtn(o,item.a))}
+        {item.o.map(o=>optBtn(o,item.a))}
       </div>
     );
     if(step.game==="trivia"){
@@ -2257,7 +2264,7 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
               <button onClick={()=>setClueLevel(l=>l+1)} style={{background:"none",border:"2px solid #FF9F43",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:800,cursor:"pointer",marginTop:8,color:"#F08000",fontFamily:"Nunito,sans-serif"}}>+ {t.clueBtn}</button>
             )}
           </div>
-          {shuffle(item.o).map(o=>optBtn(o,item.a))}
+          {item.o.map(o=>optBtn(o,item.a))}
         </div>
       );
     }
@@ -2295,20 +2302,17 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
       );
     }
     if(step.game==="animal"){
-      const [imgLoaded, setImgLoaded] = [false, ()=>{}]; // simple fallback
+      const animalOpts2 = item.opts ? [...item.opts] : [];
       return(
         <div>
-          <div style={{borderRadius:20,overflow:"hidden",marginBottom:14,height:200,background:"#F5F0EB",display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
-            <span style={{fontSize:70,position:"absolute"}}>{item.emoji}</span>
-            <img src={item.img} alt="animal" style={{width:"100%",height:200,objectFit:"cover",borderRadius:20}}
-              onError={e=>{e.target.style.display="none";}}
-            />
+          <div style={{borderRadius:24,marginBottom:14,height:180,background:"linear-gradient(135deg,#FFF3E0,#FFE0B2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <span style={{fontSize:110,lineHeight:1}}>{item.emoji}</span>
           </div>
-          <p style={{textAlign:"center",fontSize:20,fontWeight:800,marginBottom:14}}>
+          <p style={{textAlign:"center",fontSize:18,fontWeight:800,marginBottom:12}}>
             {isHe?"מה בעל החיים הזה?":"What animal is this?"}
           </p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {shuffle(item.opts).map(opt=>optBtn(opt,item.name))}
+            {animalOpts2.map(opt=>optBtn(opt,item.name))}
           </div>
         </div>
       );
@@ -2371,7 +2375,7 @@ function LanguageGame({ t, lang, onBack }) {
   const cur=pool[idx];
   const handle=(opt)=>{if(chosen)return;playClick();setChosen(opt);if(opt===cur.a){setScore(s=>s+10);sayCorrect(lang);}else sayWrong(lang);setTimeout(()=>{if(idx+1<pool.length){setIdx(i=>i+1);setChosen(null);}else{setDone(true);sayDone(lang);}},1200);};
   if(done)return(<div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🎊</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {score}/{pool.length*10}</p><button className="btn btn-green" onClick={()=>{setPool(shuffle(all).slice(0,6));setIdx(0);setScore(0);setDone(false);setChosen(null);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={onBack}>{t.menu}</button></div>);
-  return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><div className="score-pill">⭐ {score}</div></div><h2 className="st">💬 {t.language}</h2><p className="pl">{idx+1}/{pool.length}</p><div className="card card-green" style={{textAlign:"center",marginBottom:14}}><p style={{fontSize:24,fontWeight:900,lineHeight:1.5}}>{cur.p}</p></div>{shuffle(cur.o).map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(chosen===opt)cls+=opt===cur.a?" opt-correct":" opt-wrong";else if(chosen&&opt===cur.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handle(opt)}>{opt}</button>;})}</div>);
+  return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><div className="score-pill">⭐ {score}</div></div><h2 className="st">💬 {t.language}</h2><p className="pl">{idx+1}/{pool.length}</p><div className="card card-green" style={{textAlign:"center",marginBottom:14}}><p style={{fontSize:24,fontWeight:900,lineHeight:1.5}}>{cur.p}</p></div>{cur.o.map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(chosen===opt)cls+=opt===cur.a?" opt-correct":" opt-wrong";else if(chosen&&opt===cur.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handle(opt)}>{opt}</button>;})}</div>);
 }
 
 // ── Music Game ────────────────────────────────────────────────────────────────
@@ -2391,7 +2395,7 @@ function MusicGame({ t, lang, onBack }) {
   const curR=RHYTHMS[rRound%RHYTHMS.length];
   const circCls=`rhythm-circle ${rBeat?"rh-play":rPhase==="input"?"rh-input":rPhase==="result"?`rh-${rResult||"idle"}`:"rh-idle"}`;
   if(mode==="menu")return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button></div><h2 className="st">🎵 {t.music}</h2><div className="card card-sun" style={{textAlign:"center",cursor:"pointer",marginBottom:14}} onClick={()=>setMode("songs")}><span style={{fontSize:44,display:"block",marginBottom:8}}>🎤</span><p style={{fontSize:18,fontWeight:800}}>{lang==="he"?"השלם את השיר":"Complete the song"}</p></div><div className="card card-green" style={{textAlign:"center",cursor:"pointer"}} onClick={()=>setMode("rhythm")}><span style={{fontSize:44,display:"block",marginBottom:8}}>🥁</span><p style={{fontSize:18,fontWeight:800}}>{lang==="he"?"חיקוי קצב":"Rhythm Echo"}</p></div></div>);
-  if(mode==="songs"){if(sDone)return(<div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🎤</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {sScore}/{SONGS_N*10}</p><button className="btn btn-sun" onClick={()=>{setSongPool(shuffle(allSongs));setSongIdx(0);setSScore(0);setSChosen(null);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={()=>setMode("menu")}>{t.back}</button></div>);return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={()=>setMode("menu")}>{t.back}</button><div className="score-pill">⭐ {sScore}</div></div><h2 className="st">🎤 {lang==="he"?"השלם את השיר":"Complete the song"}</h2><p className="pl">{songIdx+1}/{SONGS_N}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><span style={{fontSize:44}}>{cur.e}</span><p style={{fontSize:12,color:"#8B7E74",fontWeight:700,margin:"4px 0 8px"}}>🎵 {cur.t}</p><p style={{fontSize:21,fontWeight:900,lineHeight:1.5}}>{cur.l}</p></div>{shuffle(cur.o).map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(sChosen===opt)cls+=opt===cur.a?" opt-correct":" opt-wrong";else if(sChosen&&opt===cur.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handleSong(opt)}>{opt}</button>;})}</div>);}
+  if(mode==="songs"){if(sDone)return(<div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🎤</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {sScore}/{SONGS_N*10}</p><button className="btn btn-sun" onClick={()=>{setSongPool(shuffle(allSongs));setSongIdx(0);setSScore(0);setSChosen(null);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={()=>setMode("menu")}>{t.back}</button></div>);return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={()=>setMode("menu")}>{t.back}</button><div className="score-pill">⭐ {sScore}</div></div><h2 className="st">🎤 {lang==="he"?"השלם את השיר":"Complete the song"}</h2><p className="pl">{songIdx+1}/{SONGS_N}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><span style={{fontSize:44}}>{cur.e}</span><p style={{fontSize:12,color:"#8B7E74",fontWeight:700,margin:"4px 0 8px"}}>🎵 {cur.t}</p><p style={{fontSize:21,fontWeight:900,lineHeight:1.5}}>{cur.l}</p></div>{cur.o.map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(sChosen===opt)cls+=opt===cur.a?" opt-correct":" opt-wrong";else if(sChosen&&opt===cur.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handleSong(opt)}>{opt}</button>;})}</div>);}
   if(rDone)return(<div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🥁</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {rScore}/{RHYTHM_MAX*10}</p><button className="btn btn-sun" onClick={()=>{setRRound(0);setRScore(0);setRDone(false);setRPhase("idle");setRResult(null);setRTaps(0);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={()=>setMode("menu")}>{t.back}</button></div>);
   return(<div className="screen" style={{direction:t.dir}}><div className="topbar"><button className="back-btn" onClick={()=>setMode("menu")}>{t.back}</button><div className="score-pill">⭐ {rScore}</div></div><h2 className="st">🥁 {lang==="he"?"חיקוי קצב":"Rhythm Echo"}</h2><p className="pl">{rRound+1}/{RHYTHM_MAX}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><p style={{fontSize:22,letterSpacing:4,fontWeight:800}}>{curR.l}</p><p style={{fontSize:13,color:"#8B7E74",fontWeight:600,marginTop:6}}>{rPhase==="idle"?(lang==="he"?"הקצב שתשמע":"Pattern to hear"):rPhase==="playing"?(lang==="he"?"מקשיב...":"Listen..."):rPhase==="input"?`${lang==="he"?"הקש!":"Tap!"} ${rTaps}/${curR.p.length}`:rResult==="good"?"🎯 "+(lang==="he"?"מצוין!":"Excellent!"):rResult==="ok"?"👍 "+(lang==="he"?"כמעט!":"Almost!"):"💪 "+(lang==="he"?"נסה שוב":"Try again")}</p></div><div style={{textAlign:"center",margin:"16px 0"}}><div className={circCls} onClick={handleTap}>{rPhase==="idle"?"🥁":rPhase==="playing"?(rBeat?"💥":"🎵"):rPhase==="input"?"👆":rResult==="good"?"🎉":rResult==="ok"?"👍":"🔄"}</div></div>{rPhase==="idle"&&<button className="btn btn-sun" onClick={()=>{getCtx();playRhythm();}}>{lang==="he"?"▶ הפעל קצב":"▶ Play Rhythm"}</button>}</div>);
 }
@@ -2423,7 +2427,7 @@ function TriviaGame({ t, lang, onBack }) {
   const card=cards[idx];const pts=card?.type==="clues"?[10,7,4][clue]:10;
   const handle=(opt)=>{if(chosen)return;playClick();setChosen(opt);if(opt===card.a){setScore(s=>s+pts);sayCorrect(lang);}else sayWrong(lang);setTimeout(()=>{if(idx+1>=cards.length){setDone(true);sayDone(lang);}else{setIdx(i=>i+1);}},1600);};
   if(done)return(<div className="screen" style={{direction:T[lang].dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}><span className="big-e">🏆</span><p style={{fontSize:24,fontWeight:900,marginBottom:16}}>{t.done} {score}</p><button className="btn btn-sun" onClick={()=>{setCards(shuffle(all).slice(0,6));setIdx(0);setScore(0);setDone(false);setChosen(null);}}>{t.playAgain}</button><button className="btn btn-ghost" onClick={onBack}>{t.menu}</button></div>);
-  return(<div className="screen" style={{direction:T[lang].dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><div className="score-pill">⭐ {score}</div></div><h2 className="st">🏆 {t.trivia}</h2><p className="pl">{idx+1}/{cards.length}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><span style={{fontSize:44}}>{card.e}</span>{card.type==="q"&&<p style={{fontSize:19,fontWeight:900,marginTop:8,lineHeight:1.4}}>{card.q}</p>}{card.type==="clues"&&(<><p style={{fontSize:12,fontWeight:800,color:"#A29BFE",marginTop:8,marginBottom:8}}>{t.clueBtn} <span style={{color:"#FF9F43"}}>({pts} pts)</span></p>{card.clues.slice(0,clue+1).map((c,i)=>(<div key={i} className={`clue-box${i===clue?" clue-new":""}`}>{i+1}. {c}</div>))}{clue<2&&!chosen&&(<button onClick={()=>setClue(l=>l+1)} style={{background:"none",border:"2px solid #FF9F43",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:800,cursor:"pointer",marginTop:8,color:"#F08000",fontFamily:"Nunito,sans-serif"}}>+ {t.clueBtn}</button>)}</>)}</div>{shuffle(card.o).map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(chosen===opt)cls+=opt===card.a?" opt-correct":" opt-wrong";else if(chosen&&opt===card.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handle(opt)}>{opt}</button>;})}{chosen&&<div style={{borderRadius:14,padding:14,textAlign:"center",fontSize:18,fontWeight:800,marginTop:10,background:chosen===card.a?"#EDFFF8":"#FFF0F0",color:chosen===card.a?"#0A6B4F":"#9B2626"}}>{chosen===card.a?`✓ ${t.correct} (+${pts})`:`${t.almost} — ${card.a}`}</div>}</div>);
+  return(<div className="screen" style={{direction:T[lang].dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><div className="score-pill">⭐ {score}</div></div><h2 className="st">🏆 {t.trivia}</h2><p className="pl">{idx+1}/{cards.length}</p><div className="card card-sun" style={{textAlign:"center",marginBottom:14}}><span style={{fontSize:44}}>{card.e}</span>{card.type==="q"&&<p style={{fontSize:19,fontWeight:900,marginTop:8,lineHeight:1.4}}>{card.q}</p>}{card.type==="clues"&&(<><p style={{fontSize:12,fontWeight:800,color:"#A29BFE",marginTop:8,marginBottom:8}}>{t.clueBtn} <span style={{color:"#FF9F43"}}>({pts} pts)</span></p>{card.clues.slice(0,clue+1).map((c,i)=>(<div key={i} className={`clue-box${i===clue?" clue-new":""}`}>{i+1}. {c}</div>))}{clue<2&&!chosen&&(<button onClick={()=>setClue(l=>l+1)} style={{background:"none",border:"2px solid #FF9F43",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:800,cursor:"pointer",marginTop:8,color:"#F08000",fontFamily:"Nunito,sans-serif"}}>+ {t.clueBtn}</button>)}</>)}</div>{card.o.map(opt=>{let cls=`opt${isRtl?"":" opt-ltr"}`;if(chosen===opt)cls+=opt===card.a?" opt-correct":" opt-wrong";else if(chosen&&opt===card.a)cls+=" opt-reveal";return <button key={opt} className={cls} onClick={()=>handle(opt)}>{opt}</button>;})}{chosen&&<div style={{borderRadius:14,padding:14,textAlign:"center",fontSize:18,fontWeight:800,marginTop:10,background:chosen===card.a?"#EDFFF8":"#FFF0F0",color:chosen===card.a?"#0A6B4F":"#9B2626"}}>{chosen===card.a?`✓ ${t.correct} (+${pts})`:`${t.almost} — ${card.a}`}</div>}</div>);
 }
 
 // ── Together ──────────────────────────────────────────────────────────────────
