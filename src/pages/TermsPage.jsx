@@ -110,6 +110,9 @@ const sections = [
       </>
     ),
   },
+  {
+    id: "payment",
+    title: "5. תשלום ומנויים",
     content: (
       <>
         <div className="highlight-box">
