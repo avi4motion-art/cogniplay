@@ -1,4 +1,4 @@
-// CogniPlay v7.1 — PDF report with jsPDF
+// CogniPlay v7.3 — chat offer after daily challenge
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -714,6 +714,104 @@ function MenuScreen({ t, lang, streak, name, onSelect }) {
 }
 
 // ── Name Screen ───────────────────────────────────────────────────────────────
+// ── Companions Data ───────────────────────────────────────────────────────────
+const COMPANIONS = [
+  {
+    id: "miriam",
+    emoji: "👵",
+    avatar: "🧓",
+    nameHe: "מרים",
+    nameEn: "Miriam",
+    descHe: "סבתא חמה עם לב גדול",
+    descEn: "Warm grandmother with a big heart",
+    color: "#FF9F43",
+    bg: "#FFF3E0",
+    styleHe: "חמה, מעודדת, מספרת סיפורים על העבר",
+    systemPrompt: "You are Miriam, a warm elderly grandmother figure. Speak warmly in Hebrew, use terms of endearment, reference shared memories, be encouraging and patient. Never mention you are AI.",
+  },
+  {
+    id: "david",
+    emoji: "👴",
+    avatar: "👴",
+    nameHe: "דוד",
+    nameEn: "David",
+    descHe: "סבא חכם עם חוש הומור",
+    descEn: "Wise grandfather with a sense of humor",
+    color: "#54A0FF",
+    bg: "#E3F2FD",
+    styleHe: "חכם, הומוריסטי, מספר בדיחות ישנות",
+    systemPrompt: "You are David, a wise and funny elderly grandfather. Use gentle humor, share wisdom, tell old Israeli jokes, be warm and encouraging. Speak in Hebrew. Never mention you are AI.",
+  },
+  {
+    id: "noa",
+    emoji: "👩",
+    avatar: "👩‍⚕️",
+    nameHe: "נועה",
+    nameEn: "Noa",
+    descHe: "מלווה צעירה ואנרגטית",
+    descEn: "Young energetic companion",
+    color: "#1DD1A1",
+    bg: "#EDFFF8",
+    styleHe: "אנרגטית, מעודדת, מודרנית",
+    systemPrompt: "You are Noa, a young energetic wellness companion. Be upbeat, encouraging, and modern. Use positive language and celebrate every achievement. Speak in Hebrew. Never mention you are AI.",
+  },
+  {
+    id: "yossi",
+    emoji: "👨",
+    avatar: "👨‍🦳",
+    nameHe: "יוסי",
+    nameEn: "Yossi",
+    descHe: "חבר ותיק שתמיד שם",
+    descEn: "Old friend who is always there",
+    color: "#FF6B6B",
+    bg: "#FFF0F0",
+    styleHe: "ידידותי, ישיר, לא פורמלי",
+    systemPrompt: "You are Yossi, a warm old friend. Be casual, direct, and friendly. Speak like an old Israeli friend - warm but not overly formal. Use simple everyday Hebrew. Never mention you are AI.",
+  },
+];
+
+function CompanionScreen({ lang, name, onDone }) {
+  const isHe = lang==="he";
+  const [selected, setSelected] = useState(null);
+
+  return (
+    <div className="screen" style={{direction:T[lang].dir,display:"flex",flexDirection:"column",justifyContent:"center",minHeight:"100vh"}}>
+      <span className="big-e">🤝</span>
+      <h2 style={{fontFamily:"Fredoka,sans-serif",fontSize:28,textAlign:"center",marginBottom:8}}>
+        {isHe ? `${name ? name+"," : ""} בחר את המלווה שלך` : `Choose your companion`}
+      </h2>
+      <p style={{fontSize:15,color:"#8B7E74",fontWeight:600,textAlign:"center",marginBottom:24}}>
+        {isHe ? "מי ילווה אותך בכל יום?" : "Who will accompany you every day?"}
+      </p>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+        {COMPANIONS.map(c => (
+          <button key={c.id} onClick={()=>setSelected(c.id)} style={{
+            background: selected===c.id ? c.bg : "white",
+            border: `2.5px solid ${selected===c.id ? c.color : "#E8E0D8"}`,
+            borderRadius:20,padding:"16px 12px",cursor:"pointer",
+            transition:"all .2s",textAlign:"center",
+          }}>
+            <div style={{fontSize:48,marginBottom:6}}>{c.emoji}</div>
+            <div style={{fontSize:18,fontWeight:900,fontFamily:"Fredoka,sans-serif",color:selected===c.id?c.color:"#2D2A26",marginBottom:4}}>
+              {isHe ? c.nameHe : c.nameEn}
+            </div>
+            <div style={{fontSize:12,fontWeight:600,color:"#8B7E74",lineHeight:1.3}}>
+              {isHe ? c.descHe : c.descEn}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <button className="btn btn-sun" disabled={!selected}
+        onClick={()=>{ const c=COMPANIONS.find(x=>x.id===selected); onDone(c); }}
+        style={{opacity:selected?1:0.5}}>
+        {isHe ? "בואו נתחיל! →" : "Let's go! →"}
+      </button>
+    </div>
+  );
+}
+
 function NameScreen({ lang, onDone }) {
   const isHe = lang==="he";
   const [name, setName] = useState("");
@@ -1167,38 +1265,34 @@ const CHAT_ONBOARDING = {
   ],
 };
 
-function buildSystemPrompt(lang, name, profile) {
+function buildSystemPrompt(lang, name, profile, companion) {
   const isHe = lang === "he";
   const n = name || (isHe ? "החבר/ה שלי" : "my friend");
   const decade = profile.birthYear || (isHe ? "שנות ה-50" : "the 1950s");
   const hobbies = (profile.hobbies || []).join(", ") || (isHe ? "ללא העדפה" : "various things");
   const topics  = (profile.topics  || []).join(", ") || (isHe ? "ללא העדפה" : "various topics");
+  const comp = companion || COMPANIONS[0];
+  const compName = isHe ? comp.nameHe : comp.nameEn;
 
-  if (isHe) return `אתה CogniBot — חבר AI חם, סבלני ואוהד לאנשים מבוגרים.
-המשתמש שלך הוא ${n}, נולד/ה בסביבות ${decade}, אוהב/ת: ${hobbies}, אוהב/ת לדבר על: ${topics}.
-כללים חשובים:
+  if (isHe) return `${comp.systemPrompt}
+שמך ${compName}. המשתמש שלך הוא ${n}, נולד/ה בסביבות ${decade}, אוהב/ת: ${hobbies}, אוהב/ת לדבר על: ${topics}.
+כללים:
 - דבר בעברית פשוטה וברורה, משפטים קצרים
-- שאל שאלה אחת בלבד בכל פעם, מותאמת לתחומי העניין שלו/ה
-- התייחס לשם ${n} מדי פעם כדי שירגיש/תרגיש אישי
-- עורר זיכרונות מתקופת ה-${decade} — שירים, אירועים, מנהגים
-- אם אוהב/ת מוזיקה — שאל על שירים מהעבר
-- אם אוהב/ת בישול — שאל על מתכונים ומאכלי ילדות
-- אם אוהב/ת משפחה — שאל על ילדים, נכדים, זיכרונות משפחתיים
+- שאל שאלה אחת בלבד בכל פעם
+- התייחס לשם ${n} מדי פעם
+- עורר זיכרונות מתקופת ה-${decade}
 - תגובות קצרות — 2-3 משפטים לכל היותר
-- תמיד חם, מעודד, סבלני — לעולם אל תמהר`;
+- תמיד חם, מעודד, סבלני`;
 
-  return `You are CogniBot — a warm, patient, caring AI friend for elderly people.
-Your user is ${n}, born around ${decade}, enjoys: ${hobbies}, loves talking about: ${topics}.
-Important rules:
+  return `${comp.systemPrompt}
+Your name is ${compName}. Your user is ${n}, born around ${decade}, enjoys: ${hobbies}, loves talking about: ${topics}.
+Rules:
 - Speak in simple, clear English with short sentences
-- Ask only ONE question at a time, tailored to their interests
-- Use the name ${n} occasionally to make it feel personal
-- Evoke memories from ${decade} — songs, events, customs
-- If they like music — ask about songs from the past
-- If they like cooking — ask about childhood recipes
-- If they like family — ask about children, grandchildren, family memories
+- Ask only ONE question at a time
+- Use the name ${n} occasionally
+- Evoke memories from ${decade}
 - Keep responses to 2-3 sentences maximum
-- Always warm, encouraging, patient — never rush`;
+- Always warm, encouraging, patient`;
 }
 
 function ChatOnboarding({ lang, name, onDone }) {
@@ -1269,10 +1363,76 @@ function ChatOnboarding({ lang, name, onDone }) {
   );
 }
 
-function ChatGame({ t, lang, name, onBack }) {
+// ── Chat Offer after Daily Challenge ─────────────────────────────────────────
+function ChatOffer({ lang, name, companion, onAccept, onDecline }) {
+  const isHe = lang==="he";
+  const comp = companion || COMPANIONS[0];
+  const compName = isHe ? comp.nameHe : comp.nameEn;
+
+  useEffect(()=>{
+    // קול הזמנה לשיחה
+    setTimeout(()=>{
+      const msg = isHe
+        ? `${name ? name+", " : ""}רוצה לשוחח קצת?`
+        : `${name ? name+", " : ""}want to chat a bit?`;
+      _tts(msg, lang);
+    }, 600);
+  }, []);
+
+  return (
+    <div className="screen" style={{
+      direction:T[lang].dir,
+      display:"flex",flexDirection:"column",
+      justifyContent:"center",alignItems:"center",
+      textAlign:"center",gap:20,
+      background:"linear-gradient(160deg,#FFF3E0,#FFFBF5)"
+    }}>
+      {/* כוכבים */}
+      <div style={{fontSize:60}}>⭐⭐⭐</div>
+
+      {/* כרטיס הדמות */}
+      <div style={{
+        background:"white",borderRadius:28,padding:"28px 24px",
+        border:`3px solid ${comp.color}`,
+        boxShadow:`0 8px 32px ${comp.color}33`,
+        maxWidth:340,width:"100%"
+      }}>
+        <div style={{fontSize:72,marginBottom:8}}>{comp.emoji}</div>
+        <h2 style={{
+          fontFamily:"Fredoka,sans-serif",fontSize:26,
+          color:comp.color,marginBottom:6
+        }}>{compName}</h2>
+        <p style={{fontSize:18,fontWeight:700,color:"#2D2A26",marginBottom:8}}>
+          {isHe
+            ? `${name ? name+"," : ""} כל הכבוד על האתגר! 🎉`
+            : `${name ? name+"," : ""} great job today! 🎉`}
+        </p>
+        <p style={{fontSize:16,color:"#8B7E74",fontWeight:600,lineHeight:1.5}}>
+          {isHe
+            ? `${compName} רוצה לשוחח איתך קצת. יש לך 5 דקות?`
+            : `${compName} would love to chat. Have 5 minutes?`}
+        </p>
+      </div>
+
+      {/* כפתורים */}
+      <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:340}}>
+        <button className="btn btn-sun" onClick={onAccept} style={{fontSize:20}}>
+          {isHe ? `כן, בואו נדבר! 💬` : `Yes, let's chat! 💬`}
+        </button>
+        <button className="btn btn-ghost" onClick={onDecline} style={{fontSize:16}}>
+          {isHe ? "אולי מאוחר יותר" : "Maybe later"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Chat Game (CogniBot) ──────────────────────────────────────────────────────
+function ChatGame({ t, lang, name, companion, onBack }) {
   const isRtl = T[lang].dir==="rtl";
   const isHe  = lang==="he";
-  const [stage, setStage]   = useState("onboard"); // onboard | chat
+  const comp  = companion || COMPANIONS[0];
+  const [stage, setStage]   = useState("onboard");
   const [profile, setProfile] = useState(null);
   const [msgs,   setMsgs]   = useState([]);
   const [input,  setInput]  = useState("");
@@ -1283,7 +1443,7 @@ function ChatGame({ t, lang, name, onBack }) {
     setProfile(prof);
     setStage("chat");
     setLoading(true);
-    const sys = buildSystemPrompt(lang, name, prof);
+    const sys = buildSystemPrompt(lang, name, prof, comp);
     const hello = isHe ? "שלום" : "Hello";
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages",{
@@ -1308,7 +1468,7 @@ function ChatGame({ t, lang, name, onBack }) {
     setMsgs(history);
     setInput("");
     setLoading(true);
-    const sys = buildSystemPrompt(lang, name, profile||{});
+    const sys = buildSystemPrompt(lang, name, profile||{}, comp);
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages",{
         method:"POST",headers:{"Content-Type":"application/json"},
@@ -1331,7 +1491,7 @@ function ChatGame({ t, lang, name, onBack }) {
       <div style={{padding:"16px 18px 0",direction:T[lang].dir}}>
         <button className="back-btn" onClick={onBack}>{t.back}</button>
         <p style={{textAlign:"center",fontSize:20,fontWeight:900,fontFamily:"Fredoka,sans-serif",marginTop:12,marginBottom:4}}>
-          🤖 CogniBot
+          {comp.emoji} {isHe ? comp.nameHe : comp.nameEn}
         </p>
         <p style={{textAlign:"center",fontSize:14,color:"#8B7E74",fontWeight:600,marginBottom:16}}>
           {isHe?"כמה שאלות קצרות כדי להכיר אותך":"A few quick questions to get to know you"}
@@ -1680,7 +1840,8 @@ export default function App() {
   const [lang,   setLang]   = useState("he");
   const [streak, setStreak] = useState(7);
   const [name,   setName]   = useState("");
-  const [gender, setGender] = useState("m"); // "m" | "f"
+  const [gender, setGender] = useState("m");
+  const [companion, setCompanion] = useState(COMPANIONS[0]);
   const t = T[lang] || T.he;
   return (
     <>
@@ -1691,15 +1852,22 @@ export default function App() {
         {screen==="name"    && <NameScreen lang={lang} onDone={(n,g)=>{
           setName(n);
           setGender(g||"m");
-          if(n) {
+          setScreen("companion");
+        }} />}
+        {screen==="companion" && <CompanionScreen lang={lang} name={name} onDone={(c)=>{
+          setCompanion(c);
+          if(name) {
             playStart();
-            setTimeout(()=>showToast(lang==="he"?`היי ${n}! 🎉`:`Hey ${n}! 🎉`, "#FF9F43"), 400);
-            setTimeout(()=>speakGreeting(lang, n, g||"m"), 800);
+            const isHe = lang==="he";
+            const cName = isHe ? c.nameHe : c.nameEn;
+            setTimeout(()=>showToast(isHe?`היי ${name}! אני ${cName} 🎉`:`Hey ${name}! I'm ${cName} 🎉`, "#FF9F43"), 400);
+            setTimeout(()=>speakGreeting(lang, name, gender||"m"), 800);
           }
           setScreen("menu");
         }} />}
         {screen==="menu"    && <MenuScreen t={t} lang={lang} streak={streak} name={name} onSelect={setScreen} />}
-        {screen==="daily"   && <DailyChallenge t={t} lang={lang} name={name} gender={gender} onBack={()=>setScreen("menu")} onComplete={()=>{setStreak(s=>s+1);setScreen("menu");}} />}
+        {screen==="daily"   && <DailyChallenge t={t} lang={lang} name={name} gender={gender} onBack={()=>setScreen("menu")} onComplete={()=>{setStreak(s=>s+1);setScreen("chat-offer");}} />}
+        {screen==="chat-offer" && <ChatOffer lang={lang} name={name} companion={companion} onAccept={()=>setScreen("chat")} onDecline={()=>setScreen("menu")} />}
         {screen==="speed"   && <SpeedGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="memory"  && <MemoryGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="language"&& <LanguageGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
@@ -1709,7 +1877,7 @@ export default function App() {
         {screen==="animal"  && <AnimalGame  t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="trivia"  && <TriviaGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="together"&& <TogetherGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
-        {screen==="chat"    && <ChatGame t={t} lang={lang} name={name} onBack={()=>setScreen("menu")} />}
+        {screen==="chat"    && <ChatGame t={t} lang={lang} name={name} companion={companion} onBack={()=>setScreen("menu")} />}
         {screen==="family"  && <FamilyDash t={t} lang={lang} onBack={()=>setScreen("menu")} name={name} gender={gender} streak={streak} />}
       </div>
     </>
