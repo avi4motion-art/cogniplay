@@ -94,8 +94,22 @@ const sections = [
     ),
   },
   {
-    id: "payment",
-    title: "5. תשלום ומנויים",
+    id: "cognibot",
+    title: "4א. שיחות CogniBot",
+    content: (
+      <>
+        <div className="highlight-box">
+          🤖 CogniBot מופעל על ידי Claude AI של חברת Anthropic. שיחות מועברות לשרתי Anthropic לעיבוד ואינן נשמרות על ידי CogniPlay.
+        </div>
+        <ul>
+          <li>שיחות CogniBot <strong>אינן נשמרות</strong> בשרתי CogniPlay — הן נשמרות זמנית בדפדפן שלך בלבד.</li>
+          <li>אין לשתף מידע רפואי רגיש, סיסמאות, או פרטים פיננסיים בשיחות CogniBot.</li>
+          <li>CogniBot אינו מחליף ייעוץ רפואי, פסיכולוגי, או מקצועי מכל סוג.</li>
+          <li><strong>הקלטות קוליות:</strong> בעתיד ייתכן שנציע אפשרות הקלטת שיחות. תכונה זו תדרוש הסכמה מפורשת נפרדת לפני הפעלתה.</li>
+        </ul>
+      </>
+    ),
+  },
     content: (
       <>
         <div className="highlight-box">
