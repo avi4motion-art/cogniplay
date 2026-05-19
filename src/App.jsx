@@ -1,4 +1,4 @@
-// CogniPlay v7.3 — chat offer after daily challenge
+// CogniPlay v7.4 — auto sound done + fixed answers + gender labels
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -837,10 +837,10 @@ function NameScreen({ lang, onDone }) {
         <div style={{display:"flex",gap:12,marginBottom:16}}>
           <button onClick={()=>setGender("f")} style={{
             flex:1,padding:"16px",fontSize:20,fontWeight:800,borderRadius:16,cursor:"pointer",fontFamily:"Fredoka,sans-serif",border:`2.5px solid ${gender==="f"?"#FF9F43":"#E8E0D8"}`,background:gender==="f"?"#FFF3E0":"white",color:gender==="f"?"#F08000":"#2D2A26"
-          }}>👩 נקבה</button>
+          }}>👩 אישה</button>
           <button onClick={()=>setGender("m")} style={{
             flex:1,padding:"16px",fontSize:20,fontWeight:800,borderRadius:16,cursor:"pointer",fontFamily:"Fredoka,sans-serif",border:`2.5px solid ${gender==="m"?"#54A0FF":"#E8E0D8"}`,background:gender==="m"?"#E3F2FD":"white",color:gender==="m"?"#1464B4":"#2D2A26"
-          }}>👨 זכר</button>
+          }}>👨 גבר</button>
         </div>
       )}
       <button className="btn btn-sun" onClick={()=>{onDone(name.trim(), gender||"m");}} disabled={isHe&&!gender}>
@@ -855,15 +855,46 @@ function NameScreen({ lang, onDone }) {
 // ── Daily Challenge ──────────────────────────────────────────────────────────
 // buildDailySteps defined outside component to avoid recreation
 function buildDailySteps(lang) {
+  const shuffleOpts = (items) => items.map(item => ({
+    ...item,
+    o: item.o ? shuffle([...item.o]) : undefined,
+    opts: item.opts ? shuffle([...item.opts]) : undefined,
+  }));
   return [
-    {game:"speed",    data:shuffle(lang==="he"?SPEED_HE:SPEED_EN).slice(0,3)},
-    {game:"language", data:shuffle(SENTENCES[lang]).slice(0,3)},
-    {game:"music",    data:shuffle(SONGS[lang]).slice(0,3)},
-    {game:"animal",   data:shuffle(lang==="he"?ANIMALS_HE:ANIMALS_EN).slice(0,2)},
-    {game:"trivia",   data:shuffle(TRIVIA[lang]).slice(0,3)},
+    {game:"speed",    data:shuffleOpts(shuffle(lang==="he"?SPEED_HE:SPEED_EN).slice(0,3))},
+    {game:"language", data:shuffleOpts(shuffle(SENTENCES[lang]).slice(0,3))},
+    {game:"music",    data:shuffleOpts(shuffle(SONGS[lang]).slice(0,3))},
+    {game:"animal",   data:shuffleOpts(shuffle(lang==="he"?ANIMALS_HE:ANIMALS_EN).slice(0,2))},
+    {game:"trivia",   data:shuffleOpts(shuffle(TRIVIA[lang]).slice(0,3))},
     {game:"numbers",  data:shuffle(NUMBERS).slice(0,2)},
     {game:"sorting",  data:shuffle(ROOM_ITEMS[lang]).slice(0,3)},
   ];
+}
+
+// ── Daily Done Screen ────────────────────────────────────────────────────────
+function DoneScreen({ msg, score, lang, name, gender, isHe, t, onComplete }) {
+  useEffect(()=>{
+    // קול אוטומטי בכניסה למסך
+    playDone();
+    setTimeout(()=>showToast(msg, "#FF9F43"), 400);
+    setTimeout(()=>speakDailyDone(lang, name, gender), 800);
+    // מעבר אוטומטי לצ'אט אחרי 4 שניות
+    const timer = setTimeout(()=>onComplete(score), 4000);
+    return ()=>clearTimeout(timer);
+  }, []);
+
+  return(
+    <div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+      <span className="big-e">🎊</span>
+      <p style={{fontSize:22,fontWeight:900,color:"#2D2A26",lineHeight:1.4,marginBottom:12}}>{msg}</p>
+      <p style={{fontSize:16,color:"#8B7E74",fontWeight:700,marginBottom:24}}>
+        {isHe?`ניקוד: ${score} 🌟`:`Score: ${score} 🌟`}
+      </p>
+      <button className="btn btn-sun" onClick={()=>onComplete(score)}>
+        {isHe?"המשך ←":"Continue →"}
+      </button>
+    </div>
+  );
 }
 
 function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
@@ -979,22 +1010,10 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
   const msg = isHe ? encHe[msgIdx.current%encHe.length] : encEn[msgIdx.current%encEn.length];
 
   if(isDone) return(
-    <div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-      <span className="big-e">🎊</span>
-      <p style={{fontSize:22,fontWeight:900,color:"#2D2A26",lineHeight:1.4,marginBottom:12}}>{msg}</p>
-      <p style={{fontSize:16,color:"#8B7E74",fontWeight:700,marginBottom:24}}>
-        {isHe?`ניקוד: ${score} 🌟`:`Score: ${score} 🌟`}
-      </p>
-      <button className="btn btn-sun" onClick={()=>{
-        playDone();
-        const doneMsg = msg;
-        setTimeout(()=>showToast(doneMsg, "#FF9F43"), 500);
-        setTimeout(()=>speakDailyDone(lang, name, gender), 1000);
-        setTimeout(()=>onComplete(score), 3200);
-      }}>
-        {isHe?"חזרה לתפריט 🏠":"Back to Menu 🏠"}
-      </button>
-    </div>
+    <DoneScreen
+      msg={msg} score={score} lang={lang} name={name} gender={gender}
+      isHe={isHe} t={t} onComplete={onComplete}
+    />
   );
 
   // Render question
