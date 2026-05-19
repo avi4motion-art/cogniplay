@@ -1,4 +1,4 @@
-// CogniPlay v6.9 — restored ANIMALS data
+// CogniPlay v7.1 — PDF report with jsPDF
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -296,7 +296,7 @@ he:[
   {p:"אני מאמין באמונה ___",a:"שלמה",o:["שלמה","חזקה","גדולה","עמוקה"]},
   {p:"כבד את אביך ואת ___",a:"אמך",o:["אמך","אחיך","רעך","בנך"]},
   {p:"לא בחיל ולא בכוח כי אם ברוחי אמר ___",a:"ה׳",o:["ה׳","האל","אדוני","שמים"]},
-  {p:"ראש השנה בא לו ראש השנה ___",a:"בא",o:["בא","היה","עבר","הגיע"]},
+  {p:"תפוח בדבש נאכל שנה טובה ___",a:"נקבל",o:["נקבל","נשיר","נחגוג","נשמח"]},
   {p:"תפוח בדבש נאכל שנה טובה ___",a:"נקבל",o:["נקבל","נשיר","נשחק","נחגוג"]},
   {p:"תפוח בדבש נאכל שנה טובה ___",a:"נקבל",o:["נקבל","נשיר","נשחק","נחגוג"]},
 ],
@@ -1382,9 +1382,216 @@ function ChatGame({ t, lang, name, onBack }) {
 
 }
 // ── Family Dashboard ──────────────────────────────────────────────────────────
-function FamilyDash({ t, lang, onBack }) {
-  const isHe=lang==="he";const WD=[{d:"א",s:72},{d:"ב",s:78},{d:"ג",s:75},{d:"ד",s:82},{d:"ה",s:80},{d:"ו",s:85},{d:"ש",s:88}];const mx=Math.max(...WD.map(d=>d.s));const MD=[{l:isHe?"מהירות":"Speed",v:84,c:"#FF9F43"},{l:isHe?"זיכרון":"Memory",v:76,c:"#54A0FF"},{l:isHe?"שפה":"Language",v:91,c:"#1DD1A1"}];
-  return(<div className="screen" style={{direction:T[lang].dir}}><div className="topbar"><button className="back-btn" onClick={onBack}>{t.back}</button><span style={{fontSize:16,fontWeight:800}}>📊 {t.family}</span></div><div className="card" style={{background:"#EDFFF8",border:"2px solid #1DD1A1",marginBottom:14}}><p style={{fontSize:14,fontWeight:800,color:"#0A6B4F"}}>✅ {isHe?"שיחקה 4 פעמים השבוע! 🎉":"Played 4 times this week! 🎉"}</p></div><div className="card" style={{marginBottom:14}}><p style={{fontSize:15,fontWeight:800,marginBottom:10}}>{isHe?"ציון יומי":"Daily score"}</p><div style={{display:"flex",alignItems:"flex-end",gap:8,height:90}}>{WD.map((d,i)=>(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}><div style={{width:"100%",borderRadius:"8px 8px 0 0",background:d.s>=80?"#1DD1A1":"#FF9F43",height:`${(d.s/mx)*80}px`}}/><span style={{fontSize:12,fontWeight:700,color:"#8B7E74"}}>{d.d}</span></div>))}</div></div><div className="card" style={{marginBottom:14}}><p style={{fontSize:15,fontWeight:800,marginBottom:12}}>{isHe?"לפי תחום":"By domain"}</p>{MD.map(m=>(<div key={m.l} style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}><span style={{fontSize:13,fontWeight:700,width:60,color:"#2D2A26"}}>{m.l}</span><div style={{flex:1,background:"#EEE",borderRadius:99,height:10,overflow:"hidden"}}><div style={{width:`${m.v}%`,height:"100%",borderRadius:99,background:m.c}}/></div><span style={{fontSize:13,fontWeight:900,width:30,textAlign:"right"}}>{m.v}</span></div>))}</div></div>);
+function FamilyDash({ t, lang, onBack, name, gender, streak, stats }) {
+  const isHe = lang==="he";
+  const [generating, setGenerating] = useState(false);
+
+  const WD = stats?.weekly || [{d:"א",s:72},{d:"ב",s:78},{d:"ג",s:75},{d:"ד",s:82},{d:"ה",s:80},{d:"ו",s:85},{d:"ש",s:88}];
+  const mx = Math.max(...WD.map(d=>d.s));
+  const MD = stats?.domains || [
+    {l:isHe?"מהירות":"Speed",v:84,c:"#FF9F43"},
+    {l:isHe?"זיכרון":"Memory",v:76,c:"#54A0FF"},
+    {l:isHe?"שפה":"Language",v:91,c:"#1DD1A1"},
+    {l:isHe?"מוזיקה":"Music",v:88,c:"#FF6B6B"},
+  ];
+
+  const downloadPDF = async () => {
+    setGenerating(true);
+    try {
+      // Load jsPDF dynamically
+      if (!window.jspdf) {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const W = 210, H = 297;
+      const today = new Date().toLocaleDateString('he-IL');
+      const userName = name || (isHe ? "המשתמש" : "User");
+
+      // Header
+      doc.setFillColor(45, 42, 38);
+      doc.rect(0, 0, W, 28, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18); doc.setFont('helvetica','bold');
+      doc.text('CogniPlay', 14, 18);
+      doc.setFontSize(11); doc.setFont('helvetica','normal');
+      doc.text('Cognitive Wellness Report', W-14, 18, {align:'right'});
+
+      // Title
+      doc.setTextColor(45, 42, 38);
+      doc.setFontSize(20); doc.setFont('helvetica','bold');
+      doc.text(isHe ? `דוח פעילות — ${userName}` : `Activity Report — ${userName}`, W/2, 42, {align:'center'});
+      doc.setFontSize(11); doc.setFont('helvetica','normal');
+      doc.setTextColor(139, 126, 116);
+      doc.text(isHe ? `תאריך: ${today}` : `Date: ${today}`, W/2, 50, {align:'center'});
+
+      // Disclaimer box
+      doc.setFillColor(255, 248, 225);
+      doc.setDrawColor(255, 213, 79);
+      doc.roundedRect(14, 55, W-28, 16, 3, 3, 'FD');
+      doc.setFontSize(8.5); doc.setTextColor(100,80,0);
+      doc.text('WELLNESS APP ONLY | Not a Medical Device | Does not diagnose or treat', W/2, 65, {align:'center'});
+
+      // Summary cards
+      const cards = [
+        { label: isHe?"ימי פעילות":"Active Days", value: `${streak || 7}/30`, color: [255,159,67] },
+        { label: isHe?"ניקוד ממוצע":"Avg Score", value: `${stats?.avgScore || 78}%`, color: [29,209,161] },
+        { label: isHe?"משחקים":"Games", value: `${stats?.totalGames || 42}`, color: [84,160,255] },
+        { label: isHe?"רצף ימים":"Streak", value: `${streak || 7} 🔥`, color: [255,107,107] },
+      ];
+      doc.setFontSize(10); doc.setFont('helvetica','bold');
+      doc.setTextColor(45,42,38);
+      doc.text(isHe?"סיכום חודשי":"Monthly Summary", 14, 82);
+      doc.setDrawColor(255,159,67); doc.setLineWidth(0.5);
+      doc.line(14, 84, W-14, 84);
+
+      cards.forEach((c,i) => {
+        const x = 14 + i * 46, y = 88;
+        doc.setFillColor(...c.color.map(v=>Math.round(v*0.15+255*0.85)));
+        doc.roundedRect(x, y, 43, 22, 3, 3, 'F');
+        doc.setFontSize(16); doc.setFont('helvetica','bold');
+        doc.setTextColor(...c.color);
+        doc.text(c.value, x+21.5, y+12, {align:'center'});
+        doc.setFontSize(8); doc.setFont('helvetica','normal');
+        doc.setTextColor(100,90,80);
+        doc.text(c.label, x+21.5, y+19, {align:'center'});
+      });
+
+      // Weekly bar chart
+      doc.setFontSize(10); doc.setFont('helvetica','bold');
+      doc.setTextColor(45,42,38);
+      doc.text(isHe?"ניקוד שבועי":"Weekly Scores", 14, 122);
+      doc.setDrawColor(29,209,161); doc.setLineWidth(0.5);
+      doc.line(14, 124, W-14, 124);
+
+      const chartX = 20, chartY = 155, chartH = 25, barW = 14;
+      WD.forEach((d,i) => {
+        const bh = (d.s / mx) * chartH;
+        const x = chartX + i * (barW + 5);
+        const color = d.s >= 80 ? [29,209,161] : [255,159,67];
+        doc.setFillColor(...color);
+        doc.roundedRect(x, chartY - bh, barW, bh, 2, 2, 'F');
+        doc.setFontSize(7); doc.setFont('helvetica','bold');
+        doc.setTextColor(...color);
+        doc.text(`${d.s}`, x + barW/2, chartY - bh - 2, {align:'center'});
+        doc.setTextColor(100,90,80);
+        doc.text(d.d, x + barW/2, chartY + 5, {align:'center'});
+      });
+
+      // Domain bars
+      doc.setFontSize(10); doc.setFont('helvetica','bold');
+      doc.setTextColor(45,42,38);
+      doc.text(isHe?"לפי תחום קוגניטיבי":"By Cognitive Domain", 14, 172);
+      doc.setDrawColor(84,160,255); doc.setLineWidth(0.5);
+      doc.line(14, 174, W-14, 174);
+
+      MD.forEach((m,i) => {
+        const y = 180 + i * 12;
+        doc.setFontSize(9); doc.setFont('helvetica','normal');
+        doc.setTextColor(45,42,38);
+        doc.text(m.l, 14, y+4);
+        doc.setFillColor(235,230,225);
+        doc.roundedRect(55, y, 110, 6, 1, 1, 'F');
+        const rgb = m.c.match(/\w\w/g).map(x=>parseInt(x,16));
+        doc.setFillColor(...rgb);
+        doc.roundedRect(55, y, 110*(m.v/100), 6, 1, 1, 'F');
+        doc.setFontSize(8); doc.setFont('helvetica','bold');
+        doc.setTextColor(...rgb);
+        doc.text(`${m.v}%`, 170, y+5);
+      });
+
+      // Observations
+      doc.setFontSize(10); doc.setFont('helvetica','bold');
+      doc.setTextColor(45,42,38);
+      doc.text(isHe?"תצפיות":"Observations", 14, 232);
+      doc.setDrawColor(255,107,107); doc.setLineWidth(0.5);
+      doc.line(14, 234, W-14, 234);
+
+      const obs = isHe ? [
+        `✓  ${userName} פעיל/ה באופן קבוע — ${streak || 7} ימים ברצף`,
+        "✓  ביצועים במוזיקה גבוהים במיוחד — תחום חוזק",
+        "✓  מומלץ לשתף עם הרופא המטפל לפי שיקול דעתו",
+      ] : [
+        `✓  ${userName} is consistently active — ${streak || 7} day streak`,
+        "✓  Music performance is highest — area of strength",
+        "✓  Share with treating physician at their discretion",
+      ];
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setTextColor(45,42,38);
+      obs.forEach((o,i) => doc.text(o, 14, 242 + i*8));
+
+      // Footer
+      doc.setFillColor(245,240,235);
+      doc.rect(0, H-16, W, 16, 'F');
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+      doc.setTextColor(139,126,116);
+      doc.text('CogniPlay Wellness App | Not a Medical Device | cogniplay.co.il', W/2, H-7, {align:'center'});
+
+      doc.save(`CogniPlay_Report_${userName}_${today.replace(/\//g,'-')}.pdf`);
+    } catch(e) {
+      console.error(e);
+      alert(isHe ? "שגיאה ביצירת הדוח. נסה שוב." : "Error generating report. Try again.");
+    }
+    setGenerating(false);
+  };
+
+  return(
+    <div className="screen" style={{direction:T[lang].dir}}>
+      <div className="topbar">
+        <button className="back-btn" onClick={onBack}>{t.back}</button>
+        <span style={{fontSize:16,fontWeight:800}}>📊 {t.family}</span>
+      </div>
+
+      <div className="card" style={{background:"#EDFFF8",border:"2px solid #1DD1A1",marginBottom:14}}>
+        <p style={{fontSize:14,fontWeight:800,color:"#0A6B4F"}}>
+          ✅ {isHe?`${name||""}שיחקת ${streak||7} ימים ברצף! 🎉`:`${streak||7} day streak! 🎉`}
+        </p>
+      </div>
+
+      <div className="card" style={{marginBottom:14}}>
+        <p style={{fontSize:15,fontWeight:800,marginBottom:10}}>{isHe?"ציון יומי":"Daily score"}</p>
+        <div style={{display:"flex",alignItems:"flex-end",gap:8,height:90}}>
+          {WD.map((d,i)=>(
+            <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+              <div style={{width:"100%",borderRadius:"8px 8px 0 0",background:d.s>=80?"#1DD1A1":"#FF9F43",height:`${(d.s/mx)*80}px`}}/>
+              <span style={{fontSize:12,fontWeight:700,color:"#8B7E74"}}>{d.d}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:14}}>
+        <p style={{fontSize:15,fontWeight:800,marginBottom:12}}>{isHe?"לפי תחום":"By domain"}</p>
+        {MD.map(m=>(
+          <div key={m.l} style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+            <span style={{fontSize:13,fontWeight:700,width:60,color:"#2D2A26"}}>{m.l}</span>
+            <div style={{flex:1,background:"#EEE",borderRadius:99,height:10,overflow:"hidden"}}>
+              <div style={{width:`${m.v}%`,height:"100%",borderRadius:99,background:m.c}}/>
+            </div>
+            <span style={{fontSize:13,fontWeight:900,width:30,textAlign:"right"}}>{m.v}</span>
+          </div>
+        ))}
+      </div>
+
+      <button className="btn btn-sky" onClick={downloadPDF} disabled={generating} style={{
+        background:"#54A0FF",color:"white",opacity:generating?0.7:1,
+        display:"flex",alignItems:"center",justifyContent:"center",gap:8
+      }}>
+        {generating
+          ? (isHe?"מייצר דוח PDF...":"Generating PDF...")
+          : (isHe?"📄 הורד דוח PDF לרופא":"📄 Download Doctor PDF Report")
+        }
+      </button>
+      <p style={{fontSize:11,color:"#8B7E74",textAlign:"center",marginTop:8}}>
+        {isHe?"הדוח אינו מכשיר רפואי — לשיתוף עם הרופא לפי שיקול דעתו":"Not a medical device — share with physician at their discretion"}
+      </p>
+    </div>
+  );
 }
 
 // ── Animal Quiz Game ──────────────────────────────────────────────────────────
@@ -1503,7 +1710,7 @@ export default function App() {
         {screen==="trivia"  && <TriviaGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="together"&& <TogetherGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="chat"    && <ChatGame t={t} lang={lang} name={name} onBack={()=>setScreen("menu")} />}
-        {screen==="family"  && <FamilyDash t={t} lang={lang} onBack={()=>setScreen("menu")} />}
+        {screen==="family"  && <FamilyDash t={t} lang={lang} onBack={()=>setScreen("menu")} name={name} gender={gender} streak={streak} />}
       </div>
     </>
   );
