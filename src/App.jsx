@@ -1,4 +1,4 @@
-// CogniPlay v7.4 — auto sound done + fixed answers + gender labels
+// CogniPlay v7.5 — voice chat + companion after challenge
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -1382,63 +1382,81 @@ function ChatOnboarding({ lang, name, onDone }) {
   );
 }
 
-// ── Chat Offer after Daily Challenge ─────────────────────────────────────────
-function ChatOffer({ lang, name, companion, onAccept, onDecline }) {
+// ── Chat Offer after Daily Challenge (includes companion selection) ────────────
+function ChatOffer({ lang, name, companion, onAccept, onDecline, onCompanionChange }) {
   const isHe = lang==="he";
-  const comp = companion || COMPANIONS[0];
-  const compName = isHe ? comp.nameHe : comp.nameEn;
+  const [stage, setStage] = useState("offer"); // "offer" | "pick"
+  const [picked, setPicked] = useState(companion || COMPANIONS[0]);
 
   useEffect(()=>{
-    // קול הזמנה לשיחה
     setTimeout(()=>{
       const msg = isHe
-        ? `${name ? name+", " : ""}רוצה לשוחח קצת?`
-        : `${name ? name+", " : ""}want to chat a bit?`;
+        ? `כל הכבוד${name ? " "+name : ""}! רוצה לשוחח קצת?`
+        : `Great job${name ? " "+name : ""}! Want to chat?`;
       _tts(msg, lang);
     }, 600);
   }, []);
 
-  return (
+  if(stage==="pick") return(
+    <div className="screen" style={{direction:T[lang].dir,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+      <span className="big-e">🤝</span>
+      <h2 style={{fontFamily:"Fredoka,sans-serif",fontSize:26,textAlign:"center",marginBottom:8}}>
+        {isHe ? "עם מי תרצה לשוחח היום?" : "Who would you like to talk to today?"}
+      </h2>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+        {COMPANIONS.map(c=>(
+          <button key={c.id} onClick={()=>setPicked(c)} style={{
+            background:picked.id===c.id ? c.bg : "white",
+            border:`2.5px solid ${picked.id===c.id ? c.color : "#E8E0D8"}`,
+            borderRadius:20,padding:"16px 12px",cursor:"pointer",
+            textAlign:"center",transition:"all .2s",
+          }}>
+            <div style={{fontSize:44,marginBottom:4}}>{c.emoji}</div>
+            <div style={{fontSize:17,fontWeight:900,fontFamily:"Fredoka,sans-serif",color:picked.id===c.id?c.color:"#2D2A26",marginBottom:3}}>
+              {isHe ? c.nameHe : c.nameEn}
+            </div>
+            <div style={{fontSize:11,color:"#8B7E74",fontWeight:600}}>
+              {isHe ? c.descHe : c.descEn}
+            </div>
+          </button>
+        ))}
+      </div>
+      <button className="btn btn-sun" onClick={()=>{ onCompanionChange(picked); onAccept(); }}>
+        {isHe ? `שוחח עם ${picked.nameHe} →` : `Chat with ${picked.nameEn} →`}
+      </button>
+      <button className="btn btn-ghost" onClick={onDecline} style={{marginTop:8}}>
+        {isHe ? "אולי מאוחר יותר" : "Maybe later"}
+      </button>
+    </div>
+  );
+
+  return(
     <div className="screen" style={{
-      direction:T[lang].dir,
-      display:"flex",flexDirection:"column",
-      justifyContent:"center",alignItems:"center",
-      textAlign:"center",gap:20,
+      direction:T[lang].dir,display:"flex",flexDirection:"column",
+      justifyContent:"center",alignItems:"center",textAlign:"center",gap:20,
       background:"linear-gradient(160deg,#FFF3E0,#FFFBF5)"
     }}>
-      {/* כוכבים */}
       <div style={{fontSize:60}}>⭐⭐⭐</div>
-
-      {/* כרטיס הדמות */}
       <div style={{
         background:"white",borderRadius:28,padding:"28px 24px",
-        border:`3px solid ${comp.color}`,
-        boxShadow:`0 8px 32px ${comp.color}33`,
+        border:"3px solid #FF9F43",boxShadow:"0 8px 32px #FF9F4333",
         maxWidth:340,width:"100%"
       }}>
-        <div style={{fontSize:72,marginBottom:8}}>{comp.emoji}</div>
-        <h2 style={{
-          fontFamily:"Fredoka,sans-serif",fontSize:26,
-          color:comp.color,marginBottom:6
-        }}>{compName}</h2>
-        <p style={{fontSize:18,fontWeight:700,color:"#2D2A26",marginBottom:8}}>
+        <div style={{fontSize:72,marginBottom:8}}>🎊</div>
+        <h2 style={{fontFamily:"Fredoka,sans-serif",fontSize:24,marginBottom:8}}>
           {isHe
-            ? `${name ? name+"," : ""} כל הכבוד על האתגר! 🎉`
-            : `${name ? name+"," : ""} great job today! 🎉`}
-        </p>
-        <p style={{fontSize:16,color:"#8B7E74",fontWeight:600,lineHeight:1.5}}>
-          {isHe
-            ? `${compName} רוצה לשוחח איתך קצת. יש לך 5 דקות?`
-            : `${compName} would love to chat. Have 5 minutes?`}
+            ? `${name ? name+"," : ""} כל הכבוד על האתגר!`
+            : `${name ? name+"," : ""} great job today!`}
+        </h2>
+        <p style={{fontSize:16,color:"#8B7E74",fontWeight:600}}>
+          {isHe ? "רוצה לשוחח קצת עם מישהו?" : "Would you like to chat with someone?"}
         </p>
       </div>
-
-      {/* כפתורים */}
       <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:340}}>
-        <button className="btn btn-sun" onClick={onAccept} style={{fontSize:20}}>
-          {isHe ? `כן, בואו נדבר! 💬` : `Yes, let's chat! 💬`}
+        <button className="btn btn-sun" onClick={()=>setStage("pick")} style={{fontSize:20}}>
+          {isHe ? "כן, בואו נדבר! 💬" : "Yes, let's chat! 💬"}
         </button>
-        <button className="btn btn-ghost" onClick={onDecline} style={{fontSize:16}}>
+        <button className="btn btn-ghost" onClick={onDecline}>
           {isHe ? "אולי מאוחר יותר" : "Maybe later"}
         </button>
       </div>
@@ -1520,13 +1538,58 @@ function ChatGame({ t, lang, name, companion, onBack }) {
     </div>
   );
 
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  const startListening = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert(isHe?"הדפדפן לא תומך בדיבור. נסה Chrome":"Browser doesn't support voice. Try Chrome"); return; }
+    const r = new SR();
+    r.lang = lang==="he" ? "he-IL" : "en-US";
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    r.onstart = () => setListening(true);
+    r.onend = () => setListening(false);
+    r.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      setInput(text);
+      setTimeout(()=>handleSendText(text), 300);
+    };
+    r.onerror = () => setListening(false);
+    recognitionRef.current = r;
+    r.start();
+  };
+
+  const handleSendText = async (text) => {
+    if (!text?.trim() || loading) return;
+    const userMsg = {role:"user", content:text.trim()};
+    const newMsgs = [...msgs, userMsg];
+    setMsgs(newMsgs); setInput(""); setLoading(true);
+    try {
+      const sys = buildSystemPrompt(lang, name, profile||{}, comp);
+      const res = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:200,
+          system:sys, messages:newMsgs.map(m=>({role:m.role,content:m.content}))})
+      });
+      const d = await res.json();
+      const reply = d.content?.[0]?.text || (isHe?"סליחה, לא הצלחתי...":"Sorry, I couldn't respond...");
+      setMsgs(m=>[...m,{role:"assistant",content:reply}]);
+      // קול אוטומטי לכל תשובה
+      setTimeout(()=>_tts(reply, lang), 400);
+    } catch(e) {
+      setMsgs(m=>[...m,{role:"assistant",content:isHe?"שגיאת חיבור":"Connection error"}]);
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="chat-wrap">
       <div className="chat-hdr">
         <button className="back-btn" onClick={onBack}>{t.back}</button>
-        <span style={{fontSize:28}}>🤖</span>
+        <span style={{fontSize:28}}>{comp.emoji}</span>
         <div>
-          <p style={{fontSize:17,fontWeight:900,fontFamily:"Fredoka,sans-serif"}}>CogniBot</p>
+          <p style={{fontSize:17,fontWeight:900,fontFamily:"Fredoka,sans-serif"}}>{isHe?comp.nameHe:comp.nameEn}</p>
           <p style={{fontSize:12,color:"#1DD1A1",fontWeight:700}}>● {isHe?"מחובר":"Online"}</p>
         </div>
         {profile && (
@@ -1538,23 +1601,32 @@ function ChatGame({ t, lang, name, companion, onBack }) {
       <div className="chat-msgs">
         {msgs.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?(isRtl?"flex-start":"flex-end"):(isRtl?"flex-end":"flex-start"),marginBottom:12}}>
-            {m.role==="assistant"&&<span style={{fontSize:22,alignSelf:"flex-end",marginLeft:isRtl?0:8,marginRight:isRtl?8:0}}>🤖</span>}
+            {m.role==="assistant"&&<span style={{fontSize:22,alignSelf:"flex-end",marginLeft:isRtl?0:8,marginRight:isRtl?8:0}}>{comp.emoji}</span>}
             <div className={m.role==="user"?"bubble-user":"bubble-bot"}>{m.content}</div>
           </div>
         ))}
         {loading&&(
           <div style={{display:"flex",justifyContent:isRtl?"flex-end":"flex-start"}}>
-            <span style={{fontSize:22,marginLeft:isRtl?0:8,marginRight:isRtl?8:0}}>🤖</span>
+            <span style={{fontSize:22,marginLeft:isRtl?0:8,marginRight:isRtl?8:0}}>{comp.emoji}</span>
             <div className="bubble-bot">•••</div>
           </div>
         )}
         <div ref={bottomRef}/>
       </div>
       <div className="chat-in-area">
+        {/* כפתור מיקרופון */}
+        <button onClick={startListening} disabled={listening||loading} style={{
+          background:listening?"#FF6B6B":"#1DD1A1",color:"white",border:"none",
+          borderRadius:50,width:48,height:48,fontSize:20,cursor:"pointer",
+          flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
+          animation:listening?"pulse 1s infinite":"none",
+        }}>
+          {listening?"⏸":"🎤"}
+        </button>
         <input className="chat-in" value={input} onChange={e=>setInput(e.target.value)}
-          onKeyDown={e=>e.key==="Enter"&&handleSend()}
-          placeholder={isHe?"כתוב כאן...":"Type here..."} dir={T[lang].dir}/>
-        <button className="chat-send" onClick={handleSend} disabled={loading||!input.trim()}>→</button>
+          onKeyDown={e=>e.key==="Enter"&&handleSendText(input)}
+          placeholder={isHe?listening?"מקשיב...":"דבר או כתוב כאן...":listening?"Listening...":"Speak or type here..."} dir={T[lang].dir}/>
+        <button className="chat-send" onClick={()=>handleSendText(input)} disabled={loading||!input.trim()}>→</button>
       </div>
     </div>
   );
@@ -1871,22 +1943,18 @@ export default function App() {
         {screen==="name"    && <NameScreen lang={lang} onDone={(n,g)=>{
           setName(n);
           setGender(g||"m");
-          setScreen("companion");
-        }} />}
-        {screen==="companion" && <CompanionScreen lang={lang} name={name} onDone={(c)=>{
-          setCompanion(c);
-          if(name) {
+          if(n) {
             playStart();
             const isHe = lang==="he";
-            const cName = isHe ? c.nameHe : c.nameEn;
-            setTimeout(()=>showToast(isHe?`היי ${name}! אני ${cName} 🎉`:`Hey ${name}! I'm ${cName} 🎉`, "#FF9F43"), 400);
-            setTimeout(()=>speakGreeting(lang, name, gender||"m"), 800);
+            setTimeout(()=>showToast(isHe?`היי ${n}! 🎉`:`Hey ${n}! 🎉`, "#FF9F43"), 400);
+            setTimeout(()=>speakGreeting(lang, n, g||"m"), 800);
           }
           setScreen("menu");
         }} />}
+
         {screen==="menu"    && <MenuScreen t={t} lang={lang} streak={streak} name={name} onSelect={setScreen} />}
         {screen==="daily"   && <DailyChallenge t={t} lang={lang} name={name} gender={gender} onBack={()=>setScreen("menu")} onComplete={()=>{setStreak(s=>s+1);setScreen("chat-offer");}} />}
-        {screen==="chat-offer" && <ChatOffer lang={lang} name={name} companion={companion} onAccept={()=>setScreen("chat")} onDecline={()=>setScreen("menu")} />}
+        {screen==="chat-offer" && <ChatOffer lang={lang} name={name} companion={companion} onAccept={()=>setScreen("chat")} onDecline={()=>setScreen("menu")} onCompanionChange={(c)=>setCompanion(c)} />}
         {screen==="speed"   && <SpeedGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="memory"  && <MemoryGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="language"&& <LanguageGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
