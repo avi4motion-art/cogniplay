@@ -1,4 +1,4 @@
-// CogniPlay v7.5 — voice chat + companion after challenge
+// CogniPlay v7.6 — dynamic AI tips + questions + personal feedback
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
@@ -684,8 +684,115 @@ function LangScreen({ onSelect }) {
 }
 
 // ── Menu ──────────────────────────────────────────────────────────────────────
+
+// ── Smart Claude API Features ─────────────────────────────────────────────────
+
+// 1. טיפ יומי דינמי — נשמר ב-localStorage, מתחדש פעם ביום
+const getDynamicTip = async (lang, name, profile) => {
+  const today = new Date().toDateString();
+  const key = `cogniplay_tip_${lang}_${today}`;
+  const cached = localStorage.getItem(key);
+  if (cached) return JSON.parse(cached);
+
+  try {
+    const isHe = lang === "he";
+    const prompt = isHe
+      ? `צור טיפ בריאות מוח אחד לאדם מבוגר בן ${profile?.age||70}+. הטיפ צריך להיות: קצר (משפט אחד), מעשי, חם ומעודד. ענה רק בטיפ עצמו, בלי הקדמה. בעברית.`
+      : `Create one brain health tip for a senior aged ${profile?.age||70}+. Should be: short (one sentence), practical, warm and encouraging. Reply with just the tip itself, no introduction.`;
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 80,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const d = await res.json();
+    const tip = { icon: "🧠", tip: d.content?.[0]?.text || "" };
+    if (tip.tip) {
+      localStorage.setItem(key, JSON.stringify(tip));
+      return tip;
+    }
+  } catch(e) {}
+  return null;
+};
+
+// 2. פידבק מותאם אישית בסיום אתגר
+const getPersonalFeedback = async (lang, name, score, streak) => {
+  try {
+    const isHe = lang === "he";
+    const prompt = isHe
+      ? `כתוב משפט עידוד קצר אחד ל${name||"משתמש"} שסיים אתגר קוגניטיבי עם ניקוד ${score} ורצף של ${streak} ימים. חם, אישי, קצר. בעברית בלבד.`
+      : `Write one short encouraging sentence for ${name||"user"} who completed a cognitive challenge with score ${score} and ${streak} day streak. Warm, personal, brief.`;
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 60,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const d = await res.json();
+    return d.content?.[0]?.text || null;
+  } catch(e) { return null; }
+};
+
+// 3. 3 שאלות דינמיות ליום — נשמרות ב-localStorage
+const getDynamicQuestions = async (lang, profile) => {
+  const today = new Date().toDateString();
+  const key = `cogniplay_q_${lang}_${today}`;
+  const cached = localStorage.getItem(key);
+  if (cached) return JSON.parse(cached);
+
+  try {
+    const isHe = lang === "he";
+    const topics = (profile?.topics || []).join(", ") || (isHe ? "ישראל, היסטוריה, טבע" : "Israel, history, nature");
+    const prompt = isHe
+      ? `צור 3 שאלות ידע כללי בעברית לאדם מבוגר ישראלי. נושאים: ${topics}. כל שאלה עם 4 תשובות, אחת נכונה. 
+החזר JSON בלבד (ללא markdown) בפורמט:
+[{"q":"שאלה","a":"תשובה נכונה","o":["תשובה נכונה","שגוי1","שגוי2","שגוי3"],"e":"🏛️"}]`
+      : `Create 3 general knowledge questions in English for an elderly person. Topics: ${topics}. Each with 4 options, one correct.
+Return JSON only (no markdown):
+[{"q":"question","a":"correct answer","o":["correct","wrong1","wrong2","wrong3"],"e":"🏛️"}]`;
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 500,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const d = await res.json();
+    const text = d.content?.[0]?.text || "[]";
+    const clean = text.replace(/```json|```/g, "").trim();
+    const questions = JSON.parse(clean);
+    if (questions?.length) {
+      const formatted = questions.map(q => ({ type: "q", ...q }));
+      localStorage.setItem(key, JSON.stringify(formatted));
+      return formatted;
+    }
+  } catch(e) {}
+  return null;
+};
+
 function MenuScreen({ t, lang, streak, name, onSelect }) {
   const isHe = lang==="he";
+  const [dynamicTip, setDynamicTip] = useState(null);
+  const tipIdx = useRef(Math.floor(Date.now()/86400000) % DAILY_TIPS[lang]?.length);
+
+  useEffect(()=>{
+    // נסה לטעון טיפ דינמי — אם נכשל, השתמש בסטטי
+    getDynamicTip(lang, name, {}).then(tip => {
+      if(tip?.tip) setDynamicTip(tip);
+    });
+  }, []);
+
   const games=[{id:"speed",e:"⚡",c:"#FFF3E0",l:t.speed,s:isHe?"מה השתנה?":"What changed?"},{id:"memory",e:"🃏",c:"#E3F2FD",l:t.memory,s:isHe?"מצא זוגות":"Find pairs"},{id:"language",e:"💬",c:"#E8F5E9",l:t.language,s:isHe?"השלם":"Complete"},{id:"music",e:"🎵",c:"#F3E5F5",l:t.music,s:isHe?"שירים":"Songs"},{id:"trivia",e:"🏆",c:"#FFF8E1",l:t.trivia,s:isHe?"ידע ישראלי":"Quiz"},{id:"numbers",e:"🔢",c:"#E0F7FA",l:t.numbers,s:isHe?"סדרות":"Sequences"},{id:"sorting",e:"🏠",c:"#FCE4EC",l:t.sorting,s:isHe?"לאיזה חדר?":"Which room?"},{id:"animal",e:"🐾",c:"#F1F8E9",l:isHe?"בעלי חיים":"Animals",s:isHe?"מי זה?":"Who's this?"},{id:"together",e:"👥",c:"#FFF9C4",l:t.together,s:isHe?"עם משפחה":"With family"},{id:"chat",e:"🤖",c:"#E8F5E9",l:t.chat,s:"CogniBot"},{id:"family",e:"📊",c:"#F5F5F5",l:t.family,s:isHe?"מעקב":"Track"}];
   const greeting = name ? (isHe ? `שלום, ${name}! 👋` : `Hello, ${name}! 👋`) : (isHe?"שלום! 👋":"Hello! 👋");
   return (
@@ -872,21 +979,29 @@ function buildDailySteps(lang) {
 }
 
 // ── Daily Done Screen ────────────────────────────────────────────────────────
-function DoneScreen({ msg, score, lang, name, gender, isHe, t, onComplete }) {
+function DoneScreen({ msg, score, lang, name, gender, isHe, t, onComplete, streak }) {
+  const [feedback, setFeedback] = useState(msg);
+
   useEffect(()=>{
-    // קול אוטומטי בכניסה למסך
     playDone();
     setTimeout(()=>showToast(msg, "#FF9F43"), 400);
-    setTimeout(()=>speakDailyDone(lang, name, gender), 800);
-    // מעבר אוטומטי לצ'אט אחרי 4 שניות
-    const timer = setTimeout(()=>onComplete(score), 4000);
+    // נסה לקבל פידבק מותאם אישית
+    getPersonalFeedback(lang, name, score, streak||1).then(f => {
+      if(f) {
+        setFeedback(f);
+        setTimeout(()=>_tts(f, lang), 800);
+      } else {
+        setTimeout(()=>speakDailyDone(lang, name, gender), 800);
+      }
+    });
+    const timer = setTimeout(()=>onComplete(score), 5000);
     return ()=>clearTimeout(timer);
   }, []);
 
   return(
     <div className="screen" style={{direction:t.dir,textAlign:"center",display:"flex",flexDirection:"column",justifyContent:"center"}}>
       <span className="big-e">🎊</span>
-      <p style={{fontSize:22,fontWeight:900,color:"#2D2A26",lineHeight:1.4,marginBottom:12}}>{msg}</p>
+      <p style={{fontSize:20,fontWeight:900,color:"#2D2A26",lineHeight:1.4,marginBottom:12}}>{feedback}</p>
       <p style={{fontSize:16,color:"#8B7E74",fontWeight:700,marginBottom:24}}>
         {isHe?`ניקוד: ${score} 🌟`:`Score: ${score} 🌟`}
       </p>
@@ -897,13 +1012,37 @@ function DoneScreen({ msg, score, lang, name, gender, isHe, t, onComplete }) {
   );
 }
 
-function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
+function DailyChallenge({ t, lang, name, gender="m", streak, onBack, onComplete }) {
   const isHe = lang==="he";
+  const [steps, setSteps] = useState(null);
+
+  useEffect(()=>{
+    // נסה לטעון 3 שאלות דינמיות ואז בנה את הסטפס
+    const profile = {};
+    try { const p = localStorage.getItem('cogniplay_profile'); if(p) Object.assign(profile, JSON.parse(p)); } catch(e) {}
+
+    getDynamicQuestions(lang, profile).then(dynQ => {
+      const base = buildDailySteps(lang);
+      if (dynQ?.length) {
+        // החלף חלק מ-TRIVIA בשאלות דינמיות
+        const triviaIdx = base.findIndex(s=>s.game==="trivia");
+        if (triviaIdx>=0) {
+          base[triviaIdx].data = [...dynQ, ...base[triviaIdx].data].slice(0,3);
+        }
+      }
+      setSteps(base);
+    });
+  }, [lang]);
+
+  if (!steps) return (
+    <div className="screen" style={{display:"flex",justifyContent:"center",alignItems:"center"}}>
+      <p style={{fontSize:18,color:"#8B7E74"}}>⏳ {isHe?"מכין אתגר אישי...":"Preparing your challenge..."}</p>
+    </div>
+  );
   const isRtl = T[lang].dir==="rtl";
 
   // ALL hooks declared at top - never conditionally
   const [started,   setStarted]   = useState(false);
-  const [steps]     = useState(()=>buildDailySteps(lang));
   const [stepIdx,   setStepIdx]   = useState(0);
   const [qIdx,      setQIdx]      = useState(0);
   const [score,     setScore]     = useState(0);
@@ -1012,7 +1151,7 @@ function DailyChallenge({ t, lang, name, gender="m", onBack, onComplete }) {
   if(isDone) return(
     <DoneScreen
       msg={msg} score={score} lang={lang} name={name} gender={gender}
-      isHe={isHe} t={t} onComplete={onComplete}
+      isHe={isHe} t={t} onComplete={onComplete} streak={streak}
     />
   );
 
@@ -1953,7 +2092,7 @@ export default function App() {
         }} />}
 
         {screen==="menu"    && <MenuScreen t={t} lang={lang} streak={streak} name={name} onSelect={setScreen} />}
-        {screen==="daily"   && <DailyChallenge t={t} lang={lang} name={name} gender={gender} onBack={()=>setScreen("menu")} onComplete={()=>{setStreak(s=>s+1);setScreen("chat-offer");}} />}
+        {screen==="daily"   && <DailyChallenge t={t} lang={lang} name={name} gender={gender} streak={streak} onBack={()=>setScreen("menu")} onComplete={()=>{setStreak(s=>s+1);setScreen("chat-offer");}} />}
         {screen==="chat-offer" && <ChatOffer lang={lang} name={name} companion={companion} onAccept={()=>setScreen("chat")} onDecline={()=>setScreen("menu")} onCompanionChange={(c)=>setCompanion(c)} />}
         {screen==="speed"   && <SpeedGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
         {screen==="memory"  && <MemoryGame t={t} lang={lang} onBack={()=>setScreen("menu")} />}
