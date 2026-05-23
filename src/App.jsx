@@ -1,5 +1,15 @@
 // CogniPlay v7.6 — dynamic AI tips + questions + personal feedback
 import { useState, useEffect, useRef, useCallback } from "react";
+// ── Claude API Proxy ──────────────────────────────────────────────────────────
+const claudeFetch = async (body) => {
+  const res = await fetch("/api/claude", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+};
+
 
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
 const _play = (notes) => {
@@ -700,16 +710,7 @@ const getDynamicTip = async (lang, name, profile) => {
       ? `צור טיפ בריאות מוח אחד לאדם מבוגר בן ${profile?.age||70}+. הטיפ צריך להיות: קצר (משפט אחד), מעשי, חם ומעודד. ענה רק בטיפ עצמו, בלי הקדמה. בעברית.`
       : `Create one brain health tip for a senior aged ${profile?.age||70}+. Should be: short (one sentence), practical, warm and encouraging. Reply with just the tip itself, no introduction.`;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 80,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const d = await res.json();
+    const d = await claudeFetch({ model: "claude-sonnet-4-20250514", max_tokens: 80, messages: [{ role: "user", content: prompt }] });
     const tip = { icon: "🧠", tip: d.content?.[0]?.text || "" };
     if (tip.tip) {
       localStorage.setItem(key, JSON.stringify(tip));
@@ -727,16 +728,7 @@ const getPersonalFeedback = async (lang, name, score, streak) => {
       ? `כתוב משפט עידוד קצר אחד ל${name||"משתמש"} שסיים אתגר קוגניטיבי עם ניקוד ${score} ורצף של ${streak} ימים. חם, אישי, קצר. בעברית בלבד.`
       : `Write one short encouraging sentence for ${name||"user"} who completed a cognitive challenge with score ${score} and ${streak} day streak. Warm, personal, brief.`;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 60,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const d = await res.json();
+    const d = await claudeFetch({ model: "claude-sonnet-4-20250514", max_tokens: 60, messages: [{ role: "user", content: prompt }] });
     return d.content?.[0]?.text || null;
   } catch(e) { return null; }
 };
@@ -759,16 +751,7 @@ const getDynamicQuestions = async (lang, profile) => {
 Return JSON only (no markdown):
 [{"q":"question","a":"correct answer","o":["correct","wrong1","wrong2","wrong3"],"e":"🏛️"}]`;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 500,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const d = await res.json();
+    const d = await claudeFetch({ model: "claude-sonnet-4-20250514", max_tokens: 500, messages: [{ role: "user", content: prompt }] });
     const text = d.content?.[0]?.text || "[]";
     const clean = text.replace(/```json|```/g, "").trim();
     const questions = JSON.parse(clean);
@@ -1622,11 +1605,7 @@ function ChatGame({ t, lang, name, companion, onBack }) {
     const sys = buildSystemPrompt(lang, name, prof, comp);
     const hello = isHe ? "שלום" : "Hello";
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:200,system:sys,messages:[{role:"user",content:hello}]})
-      });
-      const d = await res.json();
+      const d = await claudeFetch({model:"claude-haiku-4-5-20251001",max_tokens:200,system:sys,messages:[{role:"user",content:hello}]});
       const reply = d.content?.[0]?.text || (isHe?"שלום! איך אפשר לעזור?":"Hello! How can I help?");
       setMsgs([{role:"assistant",content:reply}]);
       
@@ -1646,11 +1625,7 @@ function ChatGame({ t, lang, name, companion, onBack }) {
     setLoading(true);
     const sys = buildSystemPrompt(lang, name, profile||{}, comp);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:200,system:sys,messages:history})
-      });
-      const d = await res.json();
+      const d = await claudeFetch({model:"claude-haiku-4-5-20251001",max_tokens:200,system:sys,messages:history});
       const reply = d.content?.[0]?.text || (isHe?"סליחה, נסה שוב":"Sorry, try again");
       setMsgs(p=>[...p,{role:"assistant",content:reply}]);
       
@@ -1706,12 +1681,7 @@ function ChatGame({ t, lang, name, companion, onBack }) {
     setMsgs(newMsgs); setInput(""); setLoading(true);
     try {
       const sys = buildSystemPrompt(lang, name, profile||{}, comp);
-      const res = await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:200,
-          system:sys, messages:newMsgs.map(m=>({role:m.role,content:m.content}))})
-      });
-      const d = await res.json();
+      const d = await claudeFetch({model:"claude-sonnet-4-20250514",max_tokens:200,system:sys,messages:newMsgs.map(m=>({role:m.role,content:m.content}))});
       const reply = d.content?.[0]?.text || (isHe?"סליחה, לא הצלחתי...":"Sorry, I couldn't respond...");
       setMsgs(m=>[...m,{role:"assistant",content:reply}]);
       // קול אוטומטי לכל תשובה
