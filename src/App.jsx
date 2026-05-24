@@ -2,14 +2,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 // ── Claude API Proxy ──────────────────────────────────────────────────────────
 const claudeFetch = async (body) => {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/claude", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-calls": "true",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   return res.json();
