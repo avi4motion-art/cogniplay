@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 // ── Claude API Proxy ──────────────────────────────────────────────────────────
 const claudeFetch = async (body) => {
-  const res = await fetch("/api/claude", {
+  const res = await fetch("https://function-bun-production-8d0b.up.railway.app/api/claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
