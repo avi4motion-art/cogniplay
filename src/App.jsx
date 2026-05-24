@@ -1,8 +1,8 @@
 // CogniPlay v7.6 — dynamic AI tips + questions + personal feedback
 import { useState, useEffect, useRef, useCallback } from "react";
-// ── Claude API Proxy (Cloudflare Worker) ─────────────────────────────────────
+// ── Claude API Proxy ──────────────────────────────────────────────────────────
 const claudeFetch = async (body) => {
-  const res = await fetch("https://cogniplay-proxy.avi4motion.workers.dev", {
+  const res = await fetch("/api/claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
