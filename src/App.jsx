@@ -1027,6 +1027,7 @@ function DailyChallenge({ t, lang, name, gender="m", streak, onBack, onComplete 
   const [phase,     setPhase]     = useState("before");
   const [clueLevel, setClueLevel] = useState(0);
   const msgIdx = useRef(Math.floor(Math.random()*7));
+  const tipIdx = useRef(Math.floor(Math.random()*14));
 
   useEffect(()=>{
     if(!started || !steps) return;
@@ -1083,7 +1084,6 @@ function DailyChallenge({ t, lang, name, gender="m", streak, onBack, onComplete 
     return <button key={opt} className={cls} onClick={()=>pick2(opt,ans)}>{opt}</button>;
   };
 
-  const tipIdx = useRef(Math.floor(Math.random()*14));
   const tip = DAILY_TIPS[lang][tipIdx.current % DAILY_TIPS[lang].length];
 
   // Start screen
