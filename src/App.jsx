@@ -1,10 +1,15 @@
 // CogniPlay v7.6 — dynamic AI tips + questions + personal feedback
 import { useState, useEffect, useRef, useCallback } from "react";
-// ── Claude API Proxy ──────────────────────────────────────────────────────────
+// ── Claude API Direct ────────────────────────────────────────────────────────
+const ANTHROPIC_KEY = "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";
 const claudeFetch = async (body) => {
-  const res = await fetch("/api/claude", {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_KEY,
+      "anthropic-version": "2023-06-01",
+    },
     body: JSON.stringify(body),
   });
   return res.json();
