@@ -2,15 +2,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 // ── Claude API Proxy ──────────────────────────────────────────────────────────
 const claudeFetch = async (body) => {
-  const res = await fetch("/api/claude", {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-calls": "true",
+    },
     body: JSON.stringify(body),
   });
   return res.json();
 };
-
-
 // ── Audio — Web Audio API (עובד באפליקציה אמיתית, לא ב-artifact) ─────────────
 const _play = (notes) => {
   try {
