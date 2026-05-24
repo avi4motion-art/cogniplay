@@ -1015,11 +1015,6 @@ function DailyChallenge({ t, lang, name, gender="m", streak, onBack, onComplete 
     });
   }, [lang]);
 
-  if (!steps) return (
-    <div className="screen" style={{display:"flex",justifyContent:"center",alignItems:"center"}}>
-      <p style={{fontSize:18,color:"#8B7E74"}}>⏳ {isHe?"מכין אתגר אישי...":"Preparing your challenge..."}</p>
-    </div>
-  );
   const isRtl = T[lang].dir==="rtl";
 
   // ALL hooks declared at top - never conditionally
@@ -1032,6 +1027,12 @@ function DailyChallenge({ t, lang, name, gender="m", streak, onBack, onComplete 
   const [phase,     setPhase]     = useState("before");
   const [clueLevel, setClueLevel] = useState(0);
   const msgIdx = useRef(Math.floor(Math.random()*7));
+
+  if (!steps) return (
+    <div className="screen" style={{display:"flex",justifyContent:"center",alignItems:"center"}}>
+      <p style={{fontSize:18,color:"#8B7E74"}}>⏳ {isHe?"מכין אתגר אישי...":"Preparing your challenge..."}</p>
+    </div>
+  );
 
   const si   = Math.min(stepIdx, steps.length-1);
   const qi   = Math.min(qIdx, steps[si].data.length-1);
