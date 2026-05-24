@@ -1028,6 +1028,21 @@ function DailyChallenge({ t, lang, name, gender="m", streak, onBack, onComplete 
   const [clueLevel, setClueLevel] = useState(0);
   const msgIdx = useRef(Math.floor(Math.random()*7));
 
+  useEffect(()=>{
+    if(!started || !steps) return;
+    setChosen(null); setClueLevel(0); setPhase("before");
+  },[stepIdx, qIdx, started]); // eslint-disable-line
+
+  useEffect(()=>{
+    if(!started || !steps) return;
+    const si2 = Math.min(stepIdx, steps.length-1);
+    const step2 = steps[si2];
+    if(!step2 || step2.game!=="speed" || isDone || chosen) return;
+    if(phase==="before"){const x=setTimeout(()=>setPhase("img1"),700); return()=>clearTimeout(x);}
+    if(phase==="img1")  {const x=setTimeout(()=>setPhase("img2"),1800);return()=>clearTimeout(x);}
+    if(phase==="img2")  {const x=setTimeout(()=>setPhase("ans"), 900); return()=>clearTimeout(x);}
+  },[phase, stepIdx, steps, isDone, chosen, started]);
+
   if (!steps) return (
     <div className="screen" style={{display:"flex",justifyContent:"center",alignItems:"center"}}>
       <p style={{fontSize:18,color:"#8B7E74"}}>⏳ {isHe?"מכין אתגר אישי...":"Preparing your challenge..."}</p>
@@ -1042,18 +1057,6 @@ function DailyChallenge({ t, lang, name, gender="m", streak, onBack, onComplete 
   const doneCount = steps.slice(0,si).reduce((s,x)=>s+x.data.length, 0) + qi;
   const pct = Math.round((doneCount/total)*100);
   const gameEmoji = {speed:"⚡",language:"💬",music:"🎵",trivia:"🏆",numbers:"🔢",sorting:"🏠"};
-
-  useEffect(()=>{
-    if(!started) return;
-    setChosen(null); setClueLevel(0); setPhase("before");
-  },[si, qi]); // eslint-disable-line
-
-  useEffect(()=>{
-    if(!started || step.game!=="speed" || isDone || chosen) return;
-    if(phase==="before"){const x=setTimeout(()=>setPhase("img1"),700); return()=>clearTimeout(x);}
-    if(phase==="img1")  {const x=setTimeout(()=>setPhase("img2"),1800);return()=>clearTimeout(x);}
-    if(phase==="img2")  {const x=setTimeout(()=>setPhase("ans"), 900); return()=>clearTimeout(x);}
-  },[phase, step.game, isDone, chosen, started]);
 
   const advance = (pts) => {
     setScore(s=>s+pts);
