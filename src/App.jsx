@@ -1634,6 +1634,9 @@ function ChatGame({ t, lang, name, companion, onBack }) {
     setLoading(false);
   };
 
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
+
   useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:"smooth"}); },[msgs,loading]);
 
   if (stage==="onboard") return (
@@ -1650,9 +1653,6 @@ function ChatGame({ t, lang, name, companion, onBack }) {
       <ChatOnboarding lang={lang} name={name} onDone={startChat} />
     </div>
   );
-
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef(null);
 
   const startListening = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
