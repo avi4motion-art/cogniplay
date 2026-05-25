@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תנאי שימוש | CogniPlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sun: #FF9F43;
+  --green: #1DD1A1;
+  --sky: #54A0FF;
+  --coral: #FF6B6B;
+  --bg: #FFFBF5;
+  --dark: #2D2A26;
+  --gray: #8B7E74;
+  --light: #F5F0EB;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+  line-height: 1.7;
+  direction: rtl;
+}
+
+/* HEADER */
+.header {
+  background: white;
+  border-bottom: 3px solid var(--sun);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+
+.logo {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark);
+  text-decoration: none;
+}
+.logo span { color: var(--sun); }
+
+.back-btn {
+  background: var(--sun);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: transform .15s;
+}
+.back-btn:hover { transform: translateY(-2px); }
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, #FF9F43, #FF6B6B);
+  color: white;
+  text-align: center;
+  padding: 48px 24px 40px;
+}
+.hero h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.hero p {
+  font-size: 15px;
+  opacity: .9;
+  font-weight: 300;
+}
+
+/* DISCLAIMER */
+.disclaimer-box {
+  background: #FFF8E1;
+  border: 2px solid #FFD54F;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin: 28px auto;
+  max-width: 800px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.disclaimer-box .icon { font-size: 28px; flex-shrink: 0; }
+.disclaimer-box strong { display: block; color: #7D6000; font-size: 15px; margin-bottom: 4px; }
+.disclaimer-box p { color: #7D6000; font-size: 13.5px; line-height: 1.6; }
+
+/* CONTENT */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+
+/* TOC */
+.toc {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  border: 2px solid var(--light);
+}
+.toc h3 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--dark);
+}
+.toc ol {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.toc li a {
+  color: var(--sky);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: color .15s;
+}
+.toc li a:hover { color: var(--sun); }
+
+/* SECTIONS */
+.section {
+  background: white;
+  border-radius: 20px;
+  padding: 28px 28px;
+  margin-bottom: 16px;
+  border: 2px solid transparent;
+  transition: border-color .2s;
+}
+.section:hover { border-color: var(--light); }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.section-num {
+  background: var(--sun);
+  color: white;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.section-num.green { background: var(--green); }
+.section-num.sky { background: var(--sky); }
+.section-num.coral { background: var(--coral); }
+
+.section h2 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.section p {
+  font-size: 14px;
+  color: #3D3A36;
+  margin-bottom: 10px;
+  line-height: 1.7;
+}
+
+.section ul {
+  list-style: none;
+  margin-top: 4px;
+}
+.section ul li {
+  font-size: 14px;
+  color: #3D3A36;
+  padding: 6px 0 6px 20px;
+  position: relative;
+  line-height: 1.6;
+  border-bottom: 1px solid #F5F0EB;
+}
+.section ul li:last-child { border-bottom: none; }
+.section ul li::before {
+  content: '•';
+  color: var(--sun);
+  position: absolute;
+  right: 0;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.warning-text {
+  color: #9B2626 !important;
+  font-weight: 700 !important;
+  background: #FFF0F0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-right: 4px solid var(--coral);
+}
+
+/* CONTACT */
+.contact-box {
+  background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  border: 2px solid #90CAF9;
+}
+.contact-box h3 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 22px;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+.contact-box a {
+  color: var(--sky);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* FOOTER */
+footer {
+  background: var(--dark);
+  color: rgba(255,255,255,.6);
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+}
+footer span { color: var(--sun); }
+
+@media (max-width: 600px) {
+  .toc ol { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 26px; }
+  .section { padding: 20px 18px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="/" class="logo">Cogni<span>Play</span></a>
+  <a href="/" class="back-btn">← חזרה לאפליקציה</a>
+</header>
+
+<div class="hero">
+  <h1>📋 תנאי שימוש ומדיניות פרטיות</h1>
+  <p>עדכון אחרון: מאי 2025 | גרסה 1.0</p>
+</div>
+
+<div class="container">
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer-box">
+    <div class="icon">⚠️</div>
+    <div>
+      <strong>חשוב לקרוא לפני השימוש</strong>
+      <p>CogniPlay היא אפליקציית ווילנס (רווחה) בלבד. האפליקציה אינה מכשיר רפואי, אינה מאבחנת מחלות, ואינה מחליפה ייעוץ רפואי מקצועי. לכל שאלה רפואית יש לפנות לרופא מוסמך.</p>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <h3>📌 תוכן עניינים</h3>
+    <ol>
+      <li><a href="#s1">1. קבלת התנאים</a></li>
+      <li><a href="#s2">2. מהות השירות</a></li>
+      <li><a href="#s3">3. הצהרה רפואית</a></li>
+      <li><a href="#s4">4. זכאות למשתמשים</a></li>
+      <li><a href="#s5">5. תכונות בינה מלאכותית</a></li>
+      <li><a href="#s6">6. פרטיות ונתונים</a></li>
+      <li><a href="#s7">7. הגבלת אחריות</a></li>
+      <li><a href="#s8">8. קניין רוחני</a></li>
+      <li><a href="#s9">9. שימושים אסורים</a></li>
+      <li><a href="#s10">10. שינויים בתנאים</a></li>
+      <li><a href="#s11">11. דין חל</a></li>
+      <li><a href="#s12">12. יצירת קשר</a></li>
+    </ol>
+  </div>
+
+  <!-- S1 -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>קבלת התנאים</h2>
+    </div>
+    <p>בהורדה, התקנה, או שימוש ב-CogniPlay ("האפליקציה", "השירות"), אתה מסכים להיות מחויב לתנאי שימוש אלה. אם אינך מסכים לתנאים, אין להשתמש באפליקציה.</p>
+    <p>אם אתה משתמש באפליקציה עבור אדם אחר (כגון קרוב משפחה מבוגר), אתה מאשר שיש לך סמכות לקבל תנאים אלה בשמו.</p>
+  </div>
+
+  <!-- S2 -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num green">2</div>
+      <h2>מהות השירות</h2>
+    </div>
+    <p>CogniPlay היא אפליקציית רווחה קוגניטיבית המספקת פעילויות גירוי מנטלי מהנות למבוגרים.</p>
+    <p><strong>האפליקציה כוללת:</strong></p>
+    <ul>
+      <li>משחקים קוגניטיביים ואתגרים יומיים</li>
+      <li>מעקב אחר פעילות ודוחות מעורבות</li>
+      <li>שיחות עם מלווה מבוסס בינה מלאכותית</li>
+      <li>טיפים יומיים לבריאות המוח</li>
+    </ul>
+    <p><strong>האפליקציה אינה כוללת:</strong></p>
+    <ul>
+      <li>ייעוץ רפואי או אבחון קליני</li>
+      <li>הערכה נוירולוגית מקצועית</li>
+      <li>המלצות לטיפול רפואי</li>
+      <li>כל צורה של שירות בריאות</li>
+    </ul>
+  </div>
+
+  <!-- S3 -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num coral">3</div>
+      <h2>הצהרה רפואית</h2>
+    </div>
+    <p class="warning-text">⚠️ האפליקציה אינה מכשיר רפואי ולא אושרה על ידי כל רשות בריאות (כולל FDA, EU MDR, או משרד הבריאות הישראלי) כמכשיר רפואי.</p>
+    <ul>
+      <li>ציוני מעורבות באפליקציה אינם מהווים הערכה רפואית</li>
+      <li>האפליקציה אינה מחליפה טיפול רפואי, הערכה נוירולוגית, או בדיקות קוגניטיביות מקצועיות</li>
+      <li>אם אתה או בן משפחתך חווים תסמינים קוגניטיביים, פנה לרופא מוסמך</li>
+      <li>הפניות מדעיות באפליקציה מתייחסות למחקרים כלליים — לא ל-CogniPlay ספציפית</li>
+      <li>הדוח לרופא הוא סיכום מעורבות בלבד — לא הערכה קלינית</li>
+    </ul>
+  </div>
+
+  <!-- S4 -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num sky">4</div>
+      <h2>זכאות למשתמשים</h2>
+    </div>
+    <ul>
+      <li>האפליקציה מיועדת למבוגרים בני 18 ומעלה</li>
+      <li>משתמשים מתחת לגיל 18 אינם רשאים להשתמש באפליקציה באופן עצמאי</li>
+      <li>האפליקציה מיועדת לשימוש ווילנס — לא לאנשים הזקוקים לפיקוח קליני</li>
+      <li>בשימוש באפליקציה אתה מאשר שאתה משתמש בה ככלי רווחה ולא כתחליף לטיפול רפואי</li>
+    </ul>
+  </div>
+
+  <!-- S5 -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>תכונות בינה מלאכותית</h2>
+    </div>
+    <p>CogniPlay משתמשת בבינה מלאכותית (Claude מבית Anthropic) לתכונות כולל מלווה השיחה CogniBot, טיפים דינמיים, ומשוב מותאם אישית.</p>
+    <ul>
+      <li>תגובות AI נוצרות אוטומטית ועלולות להיות לא מדויקות</li>
+      <li>תוכן AI מיועד למעורבות ורווחה בלבד — לא לייעוץ רפואי, פסיכולוגי, או משפטי</li>
+      <li>אין לשתף מידע אישי, רפואי, או פיננסי רגיש עם מלווה ה-AI</li>
+      <li>איננו מבטיחים זמינות, דיוק, או רציפות של תכונות מבוססות AI</li>
+    </ul>
+  </div>
+
+  <!-- S6 -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num green">6</div>
+      <h2>פרטיות ונתונים</h2>
+    </div>
+    <ul>
+      <li>אנו אוספים נתונים מינימליים הנדרשים להפעלת האפליקציה: דפוסי שימוש, ציוני משחק, ומידע פרופיל אופציונלי (שם, העדפת שפה)</li>
+      <li>איננו אוספים, שומרים, או משתפים: רשומות רפואיות, אבחנות בריאות, או נתוני בריאות אישיים רגישים</li>
+      <li>נתוני פעילות עשויים לשמש בצורה אנונימית ומצטברת לשיפור האפליקציה</li>
+      <li>איננו מוכרים את הנתונים האישיים שלך לצדדים שלישיים</li>
+      <li>אנו משתמשים בשירותי צד שלישי: Anthropic (AI), Vercel (אחסון), Railway (API)</li>
+      <li>בשימוש באפליקציה אתה מסכים לעיבוד נתונים סביר כמתואר לעיל</li>
+      <li>ניתן לבקש מחיקת הנתונים שלך בפנייה אל hello@cogniplay.co.il</li>
+    </ul>
+  </div>
+
+  <!-- S7 -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num coral">7</div>
+      <h2>הגבלת אחריות</h2>
+    </div>
+    <p class="warning-text">במידה המרבית המותרת על פי חוק, CogniPlay ומפתחיה לא יהיו אחראים לכל נזק ישיר, עקיף, מקרי, מיוחד, או תוצאתי הנובע מהשימוש באפליקציה.</p>
+    <ul>
+      <li>איננו אחראים לכל נזק הנובע מהסתמכות על תוכן האפליקציה, תגובות AI, או דוחות פעילות</li>
+      <li>האחריות הכוללת שלנו כלפיך לא תעלה על הסכום ששילמת עבור האפליקציה ב-12 החודשים שקדמו לכל תביעה</li>
+    </ul>
+  </div>
+
+  <!-- S8 -->
+  <div class="section" id="s8">
+    <div class="section-header">
+      <div class="section-num sky">8</div>
+      <h2>קניין רוחני</h2>
+    </div>
+    <ul>
+      <li>כל התוכן, העיצוב, הקוד, והחומרים ב-CogniPlay הם רכוש CogniPlay ומוגנים בזכויות יוצרים</li>
+      <li>אין להעתיק, לשכפל, להפיץ, או ליצור יצירות נגזרות ללא אישור בכתב</li>
+      <li>דמויות המלווה וזהות המותג הם נכסים קנייניים של CogniPlay</li>
+    </ul>
+  </div>
+
+  <!-- S9 -->
+  <div class="section" id="s9">
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>שימושים אסורים</h2>
+    </div>
+    <ul>
+      <li>אין להשתמש באפליקציה לכל מטרה בלתי חוקית</li>
+      <li>אין לנסות לפרוץ, לפרק, או לשבש את האפליקציה או שירותיה</li>
+      <li>אין להשתמש באפליקציה לספק שירותים רפואיים או לייצג אותה כמכשיר רפואי</li>
+      <li>אין להשתמש באפליקציה עבור אדם אחר ללא ידיעתו והסכמתו</li>
+    </ul>
+  </div>
+
+  <!-- S10 -->
+  <div class="section" id="s10">
+    <div class="section-header">
+      <div class="section-num green">10</div>
+      <h2>שינויים בתנאים</h2>
+    </div>
+    <ul>
+      <li>אנו שומרים על הזכות לעדכן תנאים אלה בכל עת</li>
+      <li>שינויים מהותיים יודיעו דרך האפליקציה או בדוא"ל</li>
+      <li>המשך השימוש לאחר שינויים מהווה קבלת התנאים המעודכנים</li>
+    </ul>
+  </div>
+
+  <!-- S11 -->
+  <div class="section" id="s11">
+    <div class="section-header">
+      <div class="section-num sky">11</div>
+      <h2>דין חל</h2>
+    </div>
+    <ul>
+      <li>תנאים אלה כפופים לדיני מדינת ישראל</li>
+      <li>סכסוכים יידונו בבתי המשפט המוסמכים בישראל</li>
+      <li>אם סעיף כלשהו נמצא בלתי אכיף, שאר הסעיפים נותרים בתוקף</li>
+    </ul>
+  </div>
+
+  <!-- S12 -->
+  <div class="section" id="s12">
+    <div class="section-header">
+      <div class="section-num coral">12</div>
+      <h2>יצירת קשר</h2>
+    </div>
+    <div class="contact-box">
+      <h3>📬 נשמח לשמוע ממך</h3>
+      <p style="margin: 8px 0; color: #3D3A36; font-size: 14px;">לשאלות, תמיכה, או בקשות למחיקת נתונים:</p>
+      <a href="mailto:hello@cogniplay.co.il">hello@cogniplay.co.il</a>
+      <p style="margin-top: 8px; color: #8B7E74; font-size: 13px;">cogniplay.co.il</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2025 CogniPlay · <span>אפליקציית ווילנס בלבד — לא מכשיר רפואי</span></p>
+  <p style="margin-top:6px">Wellness App Only — Not a Medical Device — Does not diagnose, treat, cure or prevent any disease</p>
+</footer>
+
+</body>
+</html>
