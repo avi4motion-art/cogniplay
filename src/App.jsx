@@ -50,14 +50,16 @@ const _tts = (text, lang="he") => {
         u.pitch = 1.0;
         u.volume = 1.0;
         const voices = window.speechSynthesis.getVoices();
-        // עדיפות: קול ישראלי, אחר כך כל קול עברי
+        // עדיפות: קול נשי עברי (Carmit), אחר כך כל קול עברי
+        const heVoices = voices.filter(v=>v.lang==="he-IL" || v.lang.startsWith("he"));
+        const enVoices = voices.filter(v=>v.lang==="en-US" || v.lang.startsWith("en"));
         const best = lang==="he"
-          ? (voices.find(v=>v.lang==="he-IL" && v.name.includes("Carmit")) ||
-             voices.find(v=>v.lang==="he-IL") ||
-             voices.find(v=>v.lang.startsWith("he")))
-          : (voices.find(v=>v.lang==="en-US" && v.name.includes("Samantha")) ||
-             voices.find(v=>v.lang==="en-US") ||
-             voices.find(v=>v.lang.startsWith("en")));
+          ? (heVoices.find(v=>v.name.includes("Carmit")) ||
+             heVoices.find(v=>/female|woman/i.test(v.name)) ||
+             heVoices[0])
+          : (enVoices.find(v=>v.name.includes("Samantha")) ||
+             enVoices.find(v=>/female|woman/i.test(v.name)) ||
+             enVoices[0]);
         if (best) u.voice = best;
         window.speechSynthesis.speak(u);
       } catch(e) {}
@@ -1610,9 +1612,11 @@ function ChatGame({ t, lang, name, companion, onBack }) {
       const d = await claudeFetch({model:"claude-haiku-4-5-20251001",max_tokens:200,system:sys,messages:[{role:"user",content:hello}]});
       const reply = d.content?.[0]?.text || (isHe?"שלום! איך אפשר לעזור?":"Hello! How can I help?");
       setMsgs([{role:"assistant",content:reply}]);
-      
+      setTimeout(()=>_tts(reply, lang), 600);
     } catch(e) {
-      setMsgs([{role:"assistant",content:isHe?"שלום! שמח לדבר איתך 😊":"Hello! Happy to chat with you 😊"}]);
+      const fallback = isHe?"שלום! שמח לדבר איתך 😊":"Hello! Happy to chat with you 😊";
+      setMsgs([{role:"assistant",content:fallback}]);
+      setTimeout(()=>_tts(fallback, lang), 600);
     }
     setLoading(false);
   };
@@ -1683,13 +1687,13 @@ function ChatGame({ t, lang, name, companion, onBack }) {
     setMsgs(newMsgs); setInput(""); setLoading(true);
     try {
       const sys = buildSystemPrompt(lang, name, profile||{}, comp);
-      const d = await claudeFetch({model:"claude-sonnet-4-20250514",max_tokens:200,system:sys,messages:newMsgs.map(m=>({role:m.role,content:m.content}))});
-      const reply = d.content?.[0]?.text || (isHe?"סליחה, לא הצלחתי...":"Sorry, I couldn't respond...");
+      const d = await claudeFetch({model:"claude-haiku-4-5-20251001",max_tokens:200,system:sys,messages:newMsgs.map(m=>({role:m.role,content:m.content}))});
+      const reply = d.content?.[0]?.text || (isHe?"סליחה, נסה שוב":"Sorry, try again");
       setMsgs(m=>[...m,{role:"assistant",content:reply}]);
-      // קול אוטומטי לכל תשובה
       setTimeout(()=>_tts(reply, lang), 400);
     } catch(e) {
-      setMsgs(m=>[...m,{role:"assistant",content:isHe?"שגיאת חיבור":"Connection error"}]);
+      const errMsg = isHe?"אופס! נסה שוב 🙂":"Oops! Try again 🙂";
+      setMsgs(m=>[...m,{role:"assistant",content:errMsg}]);
     }
     setLoading(false);
   };
