@@ -1612,11 +1612,9 @@ function ChatGame({ t, lang, name, companion, onBack }) {
       const d = await claudeFetch({model:"claude-haiku-4-5-20251001",max_tokens:200,system:sys,messages:[{role:"user",content:hello}]});
       const reply = d.content?.[0]?.text || (isHe?"שלום! איך אפשר לעזור?":"Hello! How can I help?");
       setMsgs([{role:"assistant",content:reply}]);
-      setTimeout(()=>_tts(reply, lang), 600);
     } catch(e) {
       const fallback = isHe?"שלום! שמח לדבר איתך 😊":"Hello! Happy to chat with you 😊";
       setMsgs([{role:"assistant",content:fallback}]);
-      setTimeout(()=>_tts(fallback, lang), 600);
     }
     setLoading(false);
   };
@@ -1690,7 +1688,6 @@ function ChatGame({ t, lang, name, companion, onBack }) {
       const d = await claudeFetch({model:"claude-haiku-4-5-20251001",max_tokens:200,system:sys,messages:newMsgs.map(m=>({role:m.role,content:m.content}))});
       const reply = d.content?.[0]?.text || (isHe?"סליחה, נסה שוב":"Sorry, try again");
       setMsgs(m=>[...m,{role:"assistant",content:reply}]);
-      setTimeout(()=>_tts(reply, lang), 400);
     } catch(e) {
       const errMsg = isHe?"אופס! נסה שוב 🙂":"Oops! Try again 🙂";
       setMsgs(m=>[...m,{role:"assistant",content:errMsg}]);
@@ -1729,15 +1726,7 @@ function ChatGame({ t, lang, name, companion, onBack }) {
         <div ref={bottomRef}/>
       </div>
       <div className="chat-in-area">
-        {/* כפתור מיקרופון */}
-        <button onClick={startListening} disabled={listening||loading} style={{
-          background:listening?"#FF6B6B":"#1DD1A1",color:"white",border:"none",
-          borderRadius:50,width:48,height:48,fontSize:20,cursor:"pointer",
-          flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",
-          animation:listening?"pulse 1s infinite":"none",
-        }}>
-          {listening?"⏸":"🎤"}
-        </button>
+
         <input className="chat-in" value={input} onChange={e=>setInput(e.target.value)}
           onKeyDown={e=>e.key==="Enter"&&handleSendText(input)}
           placeholder={isHe?listening?"מקשיב...":"דבר או כתוב כאן...":listening?"Listening...":"Speak or type here..."} dir={T[lang].dir}/>
