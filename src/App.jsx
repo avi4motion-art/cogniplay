@@ -744,12 +744,31 @@ const getDynamicQuestions = async (lang, profile) => {
     const isHe = lang === "he";
     const topics = (profile?.topics || []).join(", ") || (isHe ? "ישראל, היסטוריה, טבע" : "Israel, history, nature");
     const prompt = isHe
-      ? `צור 3 שאלות ידע כללי בעברית לאדם מבוגר ישראלי. נושאים: ${topics}. כל שאלה עם 4 תשובות, אחת נכונה. 
-החזר JSON בלבד (ללא markdown) בפורמט:
-[{"q":"שאלה","a":"תשובה נכונה","o":["תשובה נכונה","שגוי1","שגוי2","שגוי3"],"e":"🏛️"}]`
-      : `Create 3 general knowledge questions in English for an elderly person. Topics: ${topics}. Each with 4 options, one correct.
+      ? `צור 3 שאלות טריוויה בעברית לקשיש ישראלי בן 70+. נושאים: ${topics}.
+
+כללים חשובים:
+- שאלה ישירה וברורה בעברית פשוטה
+- תשובה נכונה אחת ברורה ומדויקת
+- 3 תשובות שגויות סבירות (לא מגוחכות)
+- אל תשתמש ברמזים — שאל שאלה ישירה בלבד
+- דוגמה טובה: "מהי עיר הנמל הגדולה בישראל?" → "חיפה"
+- דוגמה רעה: "עיר הנמצאת על שיפועיו" (רמז, לא שאלה)
+- רמת קושי: בינונית — ידועה לרוב הישראלים
+
+החזר JSON בלבד (ללא markdown):
+[{"q":"שאלה ישירה?","a":"תשובה נכונה","o":["תשובה נכונה","שגוי1","שגוי2","שגוי3"],"e":"🏛️"}]`
+      : `Create 3 trivia questions in English for a senior aged 70+. Topics: ${topics}.
+
+Rules:
+- Ask direct, clear questions — no riddles or clues
+- One clear correct answer
+- 3 plausible wrong answers
+- Medium difficulty — known to most seniors
+- Good example: "What is the capital of France?" → "Paris"
+- Bad example: "The city of love on the Seine" (clue, not a question)
+
 Return JSON only (no markdown):
-[{"q":"question","a":"correct answer","o":["correct","wrong1","wrong2","wrong3"],"e":"🏛️"}]`;
+[{"q":"Direct question?","a":"correct answer","o":["correct","wrong1","wrong2","wrong3"],"e":"🏛️"}]`;
 
     const d = await claudeFetch({ model: "claude-sonnet-4-20250514", max_tokens: 500, messages: [{ role: "user", content: prompt }] });
     const text = d.content?.[0]?.text || "[]";
